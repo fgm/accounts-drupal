@@ -3,10 +3,19 @@
  *   Server-side non-object code
  */
 
-Meteor._debug('server boot');
+Meteor._debug('Server boot');
 
-drupal.server = new DrupalServer();
+// Server is package-global, but not exported.
+server = new DrupalServer(
+  Accounts,
+  new DrupalConfiguration(Meteor.settings, ServiceConfiguration)
+);
 
-Meteor.methods({
-  "drupal.login": drupal.server.login
-});
+// Store configuration in database.
+server.configuration.persist(server.SERVICE_NAME);
+
+// Declare automatic publications.
+server.registerAutopublish();
+
+// Register the package as an accounts service.
+server.register();

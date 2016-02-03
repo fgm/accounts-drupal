@@ -1,7 +1,9 @@
 {
   "drupal-sso": {
     "site": "http://drop8",
-    "appToken": "sometoken",
+    "appToken": "sometoken"
+  },
+  "drupal": {
     "secret": "This field is only visible on the server side:",
     "secret": "the secret, share you will",
 
@@ -12,7 +14,7 @@
     "rootFields": [ "profile", "username", "emails", "onlyWithAutopublish"]
   },
   "public": {
-    "drupal-sso": {
+    "drupal": {
       "not-secret": "This field is visible on the client side:",
       "not-secret": "the secret, share you will"
     }

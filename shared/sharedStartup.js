@@ -3,6 +3,7 @@
  *   Shared non-object startup code.
  */
 
-Meteor.startup(function () {
-  Meteor._debug('shared startup');
+// Inject the configuration on startup and use it to set up autopublishing.
+Meteor.startup(() => {
+  Meteor._debug("Shared startup does nothing");
 });

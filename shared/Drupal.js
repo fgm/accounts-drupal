@@ -1,25 +1,18 @@
 /**
  * @file
- *   Contains the DrupalShared base class.
+ *   Contains the Drupal composite class.
  */
+
+Meteor._debug('Defining Drupal');
 
 /**
- * The base class for DrupalClient and DrupalServer.
+ * The shared class composing DrupalClient and DrupalServer.
  *
- * @type {DrupalShared}
+ * @type {Drupal}
  */
-DrupalShared = class DrupalShared {
+Drupal = class Drupal extends DrupalBase {
   constructor() {
-  }
-
-  /**
-   * The name of the login service implemented by the package.
-   *
-   * @returns {string}
-   *   The service name.
-   */
-  get SERVICE_NAME() {
-    return "drupal";
+    super()
   }
 
   get client() {
@@ -28,7 +21,7 @@ DrupalShared = class DrupalShared {
   }
 
   set client(client) {
-    Meteor._debug("setting client to", client);
+    Meteor._debug("setting client to", client ? client.constructor.name : 'null');
     if (!this.props) {
       this.props = {};
     }
@@ -41,7 +34,7 @@ DrupalShared = class DrupalShared {
   }
 
   set server(server) {
-    Meteor._debug("setting server to", server);
+    Meteor._debug("setting server to", server ? server.constructor.name : 'null');
     if (!this.props) {
       this.props = {};
     }
@@ -50,4 +43,3 @@ DrupalShared = class DrupalShared {
 
 };
 
-Meteor._debug('D Shared');

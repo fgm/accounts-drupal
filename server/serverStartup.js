@@ -4,6 +4,5 @@
  */
 
 Meteor.startup(function () {
-  Meteor._debug("server startup", arguments);
-  DrupalShared.server = new DrupalServer();
+  Meteor._debug("Server startup does nothing");
 });

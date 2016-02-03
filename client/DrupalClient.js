@@ -1,7 +1,18 @@
-DrupalClient = class DrupalClient extends DrupalShared {
+/**
+ * @file
+ *   Contains the DrupalClient class.
+ */
+
+Meteor._debug("Defining DrupalClient");
+
+/**
+ * The client-side class for the package.
+ *
+ * @type {DrupalClient}
+ */
+DrupalClient = class DrupalClient extends DrupalBase {
   constructor(accounts) {
-    super();
-    this.accounts = accounts;
+    super(accounts);
   }
 
   login (arg1, arg2) {
@@ -26,5 +37,3 @@ DrupalClient = class DrupalClient extends DrupalShared {
     });
   };
 };
-
-Meteor._debug('D Client');

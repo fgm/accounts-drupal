@@ -5,6 +5,9 @@
  * - Meteor.loginWithDrupal([options, ]callback)
  */
 
-drupal.client = new DrupalClient(Accounts);
+Meteor._debug('Client boot');
 
-Meteor.loginWithDrupal = drupal.client.login;
+// Client is package-global but not exported.
+client = new DrupalClient(Accounts);
+
+Meteor.loginWithDrupal = client.login;

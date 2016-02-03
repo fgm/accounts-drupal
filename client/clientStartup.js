@@ -4,6 +4,5 @@
  */
 
 Meteor.startup(function () {
-  Meteor._debug("client startup", arguments);
-  DrupalShared.client = new DrupalClient();
+  Meteor._debug("Client startup does nothing");
 });

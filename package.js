@@ -45,23 +45,30 @@ Package.onUse(function (api) {
   ];
 
   var serverOnly = [
+    "DrupalConfiguration",
     "DrupalServer",
     "serverBoot",
     "serverStartup"
   ];
 
-  var shared = [
-    "DrupalShared",
+  var sharedPre = [
+    "DrupalBase"
+  ];
+
+
+  var sharedPost = [
+    "Drupal",
     "sharedBoot",
     "sharedStartup"
   ];
 
   // Package files.
-  api.addFiles(files("shared", shared), ["client", "server"]);
+  api.addFiles(files("shared", sharedPre), ["client", "server"]);
   api.addFiles(files("client", clientOnly), "client");
   api.addFiles(files("server", serverOnly), "server");
+  api.addFiles(files("shared", sharedPost), ["client", "server"]);
 
   // Public symbols.
-  // - An instance of DrupalShared.
-  api.export("drupal");
+  // - An instance of Drupal.
+  api.export(["drupal", "Drupal"]);
 });
