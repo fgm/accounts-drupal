@@ -1,0 +1,20 @@
+{
+  "drupal-sso": {
+    "site": "http://drop8",
+    "appToken": "sometoken",
+    "secret": "This field is only visible on the server side:",
+    "secret": "the secret, share you will",
+
+    "rootFields": "An array of field names to be exposed as root properties on the user object:",
+    "rootFields": "- profile should be exposed, because it is part of accounts-base.",
+    "rootFields": "- username and emails belong to accounts-password, but have specific handling in accounts-base too.",
+    "rootFields": "- No other field can be added at user root without tweaking the users publication",
+    "rootFields": [ "profile", "username", "emails", "onlyWithAutopublish"]
+  },
+  "public": {
+    "drupal-sso": {
+      "not-secret": "This field is visible on the client side:",
+      "not-secret": "the secret, share you will"
+    }
+  }
+}
