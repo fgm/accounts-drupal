@@ -23,7 +23,9 @@ DrupalBase = class DrupalBase {
   /**
    * The name of the login service implemented by the package.
    *
-   * Uppercased to hint the result is constant.
+   * - Upper-cased to hint the result is constant.
+   * - JS static methods/accessors are not usable on instances, hence this
+   *   duplication.
    *
    * @returns {string}
    *   The service name.
@@ -32,5 +34,11 @@ DrupalBase = class DrupalBase {
     return "drupal";
   }
 
+  /**
+   * The name of the login service implemented by the package.
+   *
+   */
+  static get SERVICE_NAME() {
+    return "drupal";
+  }
 };
-

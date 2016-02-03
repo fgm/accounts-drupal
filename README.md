@@ -26,3 +26,15 @@ This is an accounts package for Meteor 1.2, using Drupal sessions transparently:
 ## Meteor configuration
 # Logging in and out
 # Running tests
+
+The package can be tested once added to an application. Note that the `test-packages` command needs a `--settings` argument like a normal application launch. This can be the example settings file from the package.
+
+    cd <your application>
+    meteor add accounts-drupal
+
+    # Run the package test suite.
+    meteor test-packages accounts-fake --settings packages/accounts-drupal/example.settings.json
+
+    # Open your browser at http://localhost:3000 to observe the test results.
+
+Remember not to have a running instance of the application already using port 3000.

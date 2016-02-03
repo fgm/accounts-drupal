@@ -23,8 +23,7 @@ module.exports = {
     "check": true,
 
     // The globals defined in this package.
-    "FakeService": true,
-    "FakeConfiguration": true
+    "Drupal": true
   },
 
   "plugins": ["react"],

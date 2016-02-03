@@ -12,6 +12,8 @@ DrupalConfiguration = class DrupalConfiguration {
   /**
    * Constructor.
    *
+   * @param {String} name
+   *   The name of the service.
    * @param {Object} settings
    *   Meteor settings.
    * @param {Object} serviceConfiguration
@@ -20,15 +22,16 @@ DrupalConfiguration = class DrupalConfiguration {
    * @returns {DrupalConfiguration}
    *   A memory-only configuration instance.
    */
-  constructor(settings, serviceConfiguration) {
-    // this.secret = settings[this.service].secret;
-    // this.rootFields = settings[this.service].rootFields || ["profile"];
-    // this.notSecret = settings.public[this.service]["not-secret"];
+  constructor(name, settings, serviceConfiguration) {
+    this.service = name;
+    this.secret = settings[this.service].secret;
+    this.rootFields = settings[this.service].rootFields || ["profile"];
+    this.notSecret = settings.public[this.service]["not-secret"];
     this.configurations = serviceConfiguration.configurations;
 
-//    if (typeof this.secret === "undefined" || this.secret !== this.notSecret) {
-//      throw new serviceConfiguration.ConfigError(this.service);
-//    }
+    if (typeof this.secret === "undefined" || this.secret !== this.notSecret) {
+      throw new serviceConfiguration.ConfigError(this.service);
+    }
   }
 
   /**

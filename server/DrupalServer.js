@@ -27,18 +27,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
     this.configuration = configuration;
   }
 
-//  /**
-//   * Setter for configuration.
-//   *
-//   * @param {DrupalConfiguration} configuration
-//   *   A configuration instance.
-//   *
-//   * @returns {void}
-//   */
-//  set configuration(configuration) {
-//    this._configuration = configuration;
-//  }
-//
   /**
    * Return the list of onProfile fields available on Meteor.user().
    *
@@ -72,9 +60,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   An array of field names.
    */
   getRootFields() {
-//    if (!this._configuration) {
-//      throw new Meteor.Error("service-unconfigured", "The service needs to be configured");
-//    }
+    if (!this.configuration) {
+      throw new Meteor.Error("service-unconfigured", "The service needs to be configured");
+    }
     const defaultRootFields = [
       // From accounts-base.
       "profile",
@@ -84,7 +72,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
       // Any other names would only appear with autopublish enabled.
     ];
-    const result = _.intersection(defaultRootFields /*, this._configuration.rootFields */);
+    const result = _.intersection(defaultRootFields, this.configuration.rootFields);
     return result;
   }
 
@@ -127,7 +115,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    Meteor._debug('server login', arguments);
+    Meteor._debug('server login', loginRequest);
     let loginResult;
     const NAME = this.SERVICE_NAME;
 
@@ -198,10 +186,10 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   register() {
     let that = this;
-    this.accounts.registerLoginHandler(this.SERVICE_NAME, function (loginRequest) {
+    that.accounts.registerLoginHandler(that.SERVICE_NAME, function (loginRequest) {
       return that.loginHandler(loginRequest);
     });
-    this.accounts.onCreateUser(function (options, user) {
+    that.accounts.onCreateUser(function (options, user) {
       return that.hookUserCreate(options, user);
     });
   }

@@ -8,11 +8,11 @@ Meteor._debug('Server boot');
 // Server is package-global, but not exported.
 server = new DrupalServer(
   Accounts,
-  new DrupalConfiguration(Meteor.settings, ServiceConfiguration)
+  new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, ServiceConfiguration)
 );
 
 // Store configuration in database.
-server.configuration.persist(server.SERVICE_NAME);
+server.configuration.persist();
 
 // Declare automatic publications.
 server.registerAutopublish();

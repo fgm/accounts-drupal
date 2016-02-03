@@ -72,3 +72,17 @@ Package.onUse(function (api) {
   // - An instance of Drupal.
   api.export(["drupal", "Drupal"]);
 });
+
+
+Package.onTest(function (api) {
+  api.use("ecmascript");
+  api.use("tinytest");
+  api.use("accounts-base");
+  api.use("accounts-drupal");
+  api.use("mongo");
+  api.use("service-configuration");
+  api.use("underscore");
+
+  api.addFiles("server/DrupalConfiguration.js", "server");
+  api.addFiles("server/serverTests.js", "server");
+});
