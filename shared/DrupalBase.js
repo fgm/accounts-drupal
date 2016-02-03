@@ -11,6 +11,11 @@ Meteor._debug('Defining DrupalBase');
  * @type {DrupalServer}
  */
 DrupalBase = class DrupalBase {
+  /**
+   *
+   * @param {AccountsClient} accounts
+   *   The AccountsClient service.
+   */
   constructor(accounts) {
     this.accounts = accounts ? accounts : null;
   }

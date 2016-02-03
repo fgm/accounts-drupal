@@ -5,5 +5,5 @@
 
 // Inject the configuration on startup and use it to set up autopublishing.
 Meteor.startup(() => {
-  Meteor._debug("Shared startup does nothing");
+  // Meteor._debug("Shared startup does nothing");
 });
