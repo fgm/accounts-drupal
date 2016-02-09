@@ -22,15 +22,37 @@ DrupalBase = class DrupalBase {
    *   The Meteor logging service.
    */
   constructor(accounts, meteor, logger) {
-    this.accounts = accounts ? accounts : null;
-    this.logger = logger ? logger : null;
+    this.accounts = accounts || null;
+    this.logger = logger || null;
+
     if (meteor.isClient) {
       this.location = "client";
     } else if (meteor.isServer) {
       this.location = "server";
     } else {
+      // XXX What about Cordova ?
       this.location = null;
     }
+  }
+
+  /**
+   * Convert a JS-style cookie string to a Drupal-plausible cookies array.
+   *
+   * @param {String} cookie
+   */
+  cookies(cookie) {
+    check(cookie, String);
+    const REGEX = /^SESS[0-9A-F]{32}$/i;
+
+    let asArray = cookie.split(";");
+    let result = {};
+    asArray.forEach((v) => {
+      let [ name, value ] = v.split("=");
+      if (REGEX.exec(name)) {
+        result[name] = value;
+      }
+    });
+    return result;
   }
 
   /**

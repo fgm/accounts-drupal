@@ -27,27 +27,23 @@ DrupalClient = class DrupalClient extends DrupalBase {
   /**
    * The method to use to perform login.
    *
-   * @param arg1
-   * @param arg2
+   * @param {String} cookie
+   *   JS semicolon-separated cookie string.
+   * @param {function} callback
+   *   Optional. Callback after login, as userCallback(err, res).
    *
    * @return {void}
    */
-  login (arg1, arg2) {
-    let options;
-    let userCallback;
-    // Support login(callback).
-    if (!arg2 && typeof arg1 === "function") {
-      userCallback = arg1;
-      options = [];
-    }
-    // Support login(options, callback).
-    else {
-      options = arg1;
-      userCallback = arg2;
-    }
+  login (cookie, callback = null) {
+    let logArg = { app: this.SERVICE_NAME };
+    const cookies = this.cookies(cookie);
 
+    if (_.isEmpty(cookies)) {
+      this.logger.warn(Object.assign(logArg, { message: "No cookie found, not trying to login." }));
+    }
     let methodArgument = {};
-    methodArgument[this.SERVICE_NAME] = options;
+
+    methodArgument[this.SERVICE_NAME] = cookies;
 
     // Other available arguments:
     // - methodName: default = "login"
@@ -57,19 +53,14 @@ DrupalClient = class DrupalClient extends DrupalBase {
       methodArguments,
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn({
-            app: this.SERVICE_NAME,
-            message: `Login failed for user "${options.user}.`
-          });
+          this.logger.warn(Object.assign(logArg, { message: `Login failed for user "${cookie}.` }));
         }
         else {
-          this.logger.info({
-            app: this.SERVICE_NAME,
-            message: `Login succeeded for user "${options.user}.`
-          });
+          console.log(res);
+          this.logger.info(Object.assign(logArg, { message: `Login succeeded for user "${cookie}.` }));
         }
-        if (_.isFunction(userCallback)) {
-          userCallback(err, res);
+        if (_.isFunction(callback)) {
+          callback(err, res);
         }
       }
     });

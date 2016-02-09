@@ -14,3 +14,8 @@ Log.info('Shared post-boot');
 drupal = new Drupal(Accounts, Meteor, Log);
 drupal.client = Meteor.isClient ? client : null;
 drupal.server = Meteor.isServer ? server : null;
+
+Meteor.methods({
+  "drupal-sso.initState": DrupalSSO.initStateMethod,
+  "drupal-sso.whoami": DrupalSSO.whoamiMethod
+});

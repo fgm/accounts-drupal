@@ -18,3 +18,6 @@ client = new DrupalClient(Accounts, Meteor, Log);
 Meteor.loginWithDrupal = function (...args) {
   return client.login(...args);
 };
+
+stream = new Meteor.Stream(DrupalSSO.CHANNEL_NAME);
+

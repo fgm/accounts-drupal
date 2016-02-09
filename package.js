@@ -32,12 +32,20 @@ Package.onUse(function (api) {
     "accounts-base",
     "service-configuration",
     "logging",
-    "underscore"
+    "underscore",
+    "http",
+    "webapp"
   ];
 
   api.use(coreDependencies);
 
-  // api.use("fgm:drupal-sso");
+  //api.use('arunoda:streams@0.1.17');
+  api.use('fgm:streams');
+
+  var sharedPre = [
+    "DrupalBase",
+    "DrupalSSO"
+  ];
 
   var clientOnly = [
     "DrupalClient",
@@ -51,11 +59,6 @@ Package.onUse(function (api) {
     "serverBoot",
     "serverStartup"
   ];
-
-  var sharedPre = [
-    "DrupalBase"
-  ];
-
 
   var sharedPost = [
     "Drupal",
@@ -87,3 +90,4 @@ Package.onTest(function (api) {
   api.addFiles("server/DrupalConfiguration.js", "server");
   api.addFiles("server/serverTests.js", "server");
 });
+

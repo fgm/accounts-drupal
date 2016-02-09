@@ -119,7 +119,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    // Meteor._debug('server login', loginRequest);
+    Meteor._debug('server login', loginRequest);
     let loginResult;
     const NAME = this.SERVICE_NAME;
 
@@ -137,11 +137,12 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     // Never forget to check tainted data like these.
     // noinspection JSCheckFunctionSignatures
-    check(options, {
-      action: Boolean,
-      user: String
-    });
+    for (option in options) {
+      check(option, String);
+      check(options[option], String);
+    }
 
+    console.log("Drupal sso", sso);
     // Use our ever-so-sophisticated authentication logic.
     if (!options.action) {
       loginResult = {
