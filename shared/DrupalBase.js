@@ -3,7 +3,7 @@
  *   Contains the DrupalBase class.
  */
 
-Meteor._debug('Defining DrupalBase');
+Log.info('Defining shared/DrupalBase');
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -12,12 +12,25 @@ Meteor._debug('Defining DrupalBase');
  */
 DrupalBase = class DrupalBase {
   /**
+   * Constructor.
    *
    * @param {AccountsClient} accounts
    *   The AccountsClient service.
+   * @param {Meteor} meteor
+   *   The Meteor global.
+   * @param {Log} logger
+   *   The Meteor logging service.
    */
-  constructor(accounts) {
+  constructor(accounts, meteor, logger) {
     this.accounts = accounts ? accounts : null;
+    this.logger = logger ? logger : null;
+    if (meteor.isClient) {
+      this.location = "client";
+    } else if (meteor.isServer) {
+      this.location = "server";
+    } else {
+      this.location = null;
+    }
   }
 
   /**

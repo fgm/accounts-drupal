@@ -3,11 +3,13 @@
  *   Server-side non-object code
  */
 
-Meteor._debug('Server boot');
+Log.info('Server boot');
 
 // Server is package-global, but not exported.
 server = new DrupalServer(
   Accounts,
+  Meteor,
+  Log,
   new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, ServiceConfiguration)
 );
 

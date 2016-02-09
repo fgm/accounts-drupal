@@ -9,8 +9,8 @@
  * - it publishes its runtime service configuration
  */
 
-Meteor._debug('Shared post-boot');
+Log.info('Shared post-boot');
 
-drupal = new Drupal();
+drupal = new Drupal(Accounts, Meteor, Log);
 drupal.client = Meteor.isClient ? client : null;
 drupal.server = Meteor.isServer ? server : null;

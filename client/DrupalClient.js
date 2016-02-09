@@ -3,7 +3,7 @@
  *   Contains the DrupalClient class.
  */
 
-Meteor._debug("Defining DrupalClient");
+Log.debug("Defining client/DrupalClient");
 
 /**
  * The client-side class for the package.
@@ -15,9 +15,13 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *
    * @param {AccountsClient} accounts
    *   The AccountsClient service.
+   * @param {Meteor} meteor
+   *   The Meteor global.
+   * @param {Log} logger
+   *   the Meteor Log service.
    */
-  constructor(accounts) {
-    super(accounts);
+  constructor(accounts, meteor, logger) {
+    super(accounts, meteor, logger);
   }
 
   /**
@@ -49,6 +53,25 @@ DrupalClient = class DrupalClient extends DrupalBase {
     // - methodName: default = "login"
     // - suppressLoggingIn: default = false
     let methodArguments = [methodArgument];
-    this.accounts.callLoginMethod({ methodArguments, userCallback });
+    this.accounts.callLoginMethod({
+      methodArguments,
+      userCallback: (err, res) => {
+        if (err) {
+          this.logger.warn({
+            app: this.SERVICE_NAME,
+            message: `Login failed for user "${options.user}.`
+          });
+        }
+        else {
+          this.logger.info({
+            app: this.SERVICE_NAME,
+            message: `Login succeeded for user "${options.user}.`
+          });
+        }
+        if (_.isFunction(userCallback)) {
+          userCallback(err, res);
+        }
+      }
+    });
   };
 };

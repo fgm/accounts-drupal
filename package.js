@@ -31,6 +31,7 @@ Package.onUse(function (api) {
     "check",
     "accounts-base",
     "service-configuration",
+    "logging",
     "underscore"
   ];
 

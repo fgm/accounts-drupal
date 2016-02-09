@@ -4,5 +4,5 @@
  */
 
 Meteor.startup(() => {
-  Meteor._debug("Client startup does nothing");
+  Log.debug("Client startup does nothing");
 });

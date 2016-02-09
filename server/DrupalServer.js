@@ -3,7 +3,7 @@
  *   Contains the DrupalServer class.
  */
 
-Meteor._debug("Defining DrupalServer");
+Log.info("Defining server/DrupalServer");
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -16,14 +16,18 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *
    * @param {AccountsServer} accounts
    *   The AccountsServer service.
+   * @param {Meteor} meteor
+   *   The Meteor global.
+   * @param {Log} logger
+   *   the Meteor Log service.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.
    *
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, configuration) {
-    super(accounts);
+  constructor(accounts, meteor, logger, configuration) {
+    super(accounts, meteor, logger);
     this.configuration = configuration;
   }
 
@@ -115,7 +119,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    Meteor._debug('server login', loginRequest);
+    // Meteor._debug('server login', loginRequest);
     let loginResult;
     const NAME = this.SERVICE_NAME;
 
@@ -125,6 +129,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
     if (!loginRequest[NAME]) {
+      this.logger.debug({ app: NAME, message: 'Login not handled.' });
       return loginResult;
     }
 
@@ -144,8 +149,10 @@ DrupalServer = class DrupalServer extends DrupalBase {
         error: new Meteor.Error("The login action said not to login.")
       };
 
+      this.logger.warn({ app: NAME, message: `Login failed for user "${options.user}".` });
       return loginResult;
     }
+    this.logger.info({ app: NAME, message: `Login succeeded for user "${options.user}".` });
 
     // In case of success, normalize the user id to lower case: MongoDB does not
     // support an efficient case-insensitive find().

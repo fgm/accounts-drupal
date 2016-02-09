@@ -3,7 +3,7 @@
  *   The configuration of accounts-drupal.
  */
 
-Meteor._debug("Defining DrupalConfiguration");
+Log.info("Defining server/DrupalConfiguration");
 
 /**
  * Configure the service from its settings.
