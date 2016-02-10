@@ -37,6 +37,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // - Merge Meteor settings to instance.
     Object.assign(this.settings.server, meteor.settings[DrupalBase.SERVICE_NAME]);
     Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
+
+    // - Initialize Drupal-dependent state.
+    this.state = this.initStateMethod();
+    if (this.state.online === true) {
+      Log.info("Retrieved Drupal site information.");
+    }
+    else {
+      throw new meteor.Error('init-state', "Could not reach Drupal server.");
+    }
   }
 
   /**
@@ -249,12 +258,19 @@ DrupalServer = class DrupalServer extends DrupalBase {
   /**
    * Update Drupal-side information.
    *
+   * This method can be used as a Drupal method (hence its name), but the
+   * default logic does not require it.
+   * 
    * @returns {Object}
    *   - cookieName: the name of the session cookie used by the site.
    *   - anonymousName: the name of the anonymous user to use when not logged in.
    *   - online: site was available at last check.
    */
   initStateMethod() {
+    let info = {
+      online: "who knows"
+    };
+
     var site = this.settings.server.site;
 
     var options = {
@@ -269,8 +285,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
     }
     catch (err) {
       info = {
-        cookieName: undefined,
         anonymousName: undefined,
+        cookieName: undefined,
         online: false
       };
       Log.error(err);

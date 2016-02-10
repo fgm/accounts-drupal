@@ -41,17 +41,6 @@ Drupal = class Drupal extends DrupalBase {
       };
     });
     meteor.methods(methods);
-
-    // - Initialize Drupal-dependent state.
-    meteor.call('accounts-drupal.initState', (err, res) => {
-      if (err) {
-        throw new meteor.Error('init-state', err);
-      }
-      Object.assign(this.state, res);
-      if (this.location === "client") {
-        this.client.updateUser(document.cookie);
-      }
-    });
   }
 
   get accounts() {

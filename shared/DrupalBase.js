@@ -44,7 +44,7 @@ DrupalBase = class DrupalBase {
       anonymousName: 'anome',
       cookieName: 'SESS___4___8__12__16__20__24__28__32',
       // Online is only set once the initialization has completed.
-      online: null
+      online: "construction"
     };
 
     if (meteor.isClient) {
