@@ -6,12 +6,12 @@
 Log.info("Loading server/startup");
 
 Meteor.startup(function () {
-  Log.info("Startup server/sso:" +  DrupalSSO.CHANNEL_NAME + " / " + DrupalSSO.EVENT_NAME);
+  Log.info("Startup server/sso");
 
   WebApp.connectHandlers.use('/updateUser', function (req, res, next) {
     res.writeHead(200);
     res.end('Send refresh request');
-    Meteor._debug('Emitting refresh request.');
+    Log.info("Emitting refresh request.");
     drupal.server.emit();
   });
 
@@ -19,7 +19,7 @@ Meteor.startup(function () {
     res.writeHead(200);
     res.end('Send refresh request');
     Meteor.setTimeout(function () {
-      Meteor._debug('Emitting refresh request.');
+      Log.info("Emitting refresh request.");
       drupal.server.emit();
     }, 1000);
   });

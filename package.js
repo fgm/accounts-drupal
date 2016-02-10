@@ -32,6 +32,7 @@ Package.onUse(function (api) {
     "accounts-base",
     "service-configuration",
     "logging",
+    "tracker",
     "underscore",
     "http",
     "webapp"
@@ -44,7 +45,7 @@ Package.onUse(function (api) {
 
   var sharedPre = [
     "DrupalBase",
-    "DrupalSSO"
+    "sharedBootPre"
   ];
 
   var clientOnly = [
@@ -62,7 +63,7 @@ Package.onUse(function (api) {
 
   var sharedPost = [
     "Drupal",
-    "sharedBoot",
+    "sharedBootPost",
     "sharedStartup"
   ];
 

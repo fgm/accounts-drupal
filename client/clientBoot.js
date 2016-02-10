@@ -8,7 +8,7 @@
 Log.info('Client boot');
 
 // Client is package-global but not exported.
-client = new DrupalClient(Accounts, Meteor, Log, DrupalSSO.CHANNEL_NAME);
+client = new DrupalClient(Accounts, Meteor, Log, stream);
 
 /**
  * Need to wrap client.login in a closure to avoid overwriting this in login().

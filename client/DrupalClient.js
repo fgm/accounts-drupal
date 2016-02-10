@@ -19,12 +19,41 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   The Meteor global.
    * @param {Log} logger
    *   The Meteor Log service.
-   * @param {String} streamName
-   *   The name of the stream used for SSO notifications.
+   * @param {Stream} stream
+   *   The stream used by the package.
    */
-  constructor(accounts, meteor, logger, streamName) {
-    super(accounts, meteor, logger, streamName);
+  constructor(accounts, meteor, logger, stream) {
+    super(accounts, meteor, logger, stream);
+    this.call = (...args) => (meteor.call(...args));
+    this.userDep = new Tracker.Dependency();
+    this.user = this.getDefaultUser();
+    
+    // - Merge public settings to instance.
+    Object.assign(this.settings.client, meteor.settings.public);
   }
+
+  getDefaultUser() {
+    return {
+      uid: 0,
+      name: 'undefined name',
+      roles: ['anonymous user']
+    };
+  }
+
+  getUserId() {
+    this.userDep.depend();
+    return this.user.uid;
+  }
+
+  getUserName() {
+    this.userDep.depend();
+    return this.user.name;
+  };
+
+  getUserRoles() {
+    this.userDep.depend();
+    return this.user.roles;
+  };
 
   /**
    * The method to use to perform login.
@@ -68,4 +97,41 @@ DrupalClient = class DrupalClient extends DrupalBase {
       }
     });
   };
+
+  /**
+   * Update the user information from the Drupal server based on the cookies.
+   *
+   * @param {string} cookies
+   */
+  updateUser(cookies) {
+    // XXX why do we do this (previously testin Meteor.isClient) ?
+    if (true) {
+      Meteor._debug('Setting up once on ' + this.STREAM_NAME);
+      // Just listen once, since we rearm immediately.
+      this.stream.once(this.EVENT_NAME, (e) => {
+        // In fat-arrow functions, "this" is not redefined.
+        this.updateUser(document.cookie);
+      });
+    }
+
+    this.call('drupal-sso.whoami', cookies, (err, res) => {
+      if (err) {
+        throw new Meteor.Error('whoami', err);
+      }
+
+      Object.assign(this.user, res);
+      this.userDep.changed();
+    });
+  };
+
+  initStateMethod() {
+    Log.info("Client stub for initStateMethod, doing nothing.");
+  }
+
+  whoamiMethod(cookieBlob) {
+    Log.info("Client stub for whoamiMehod, returning default user.");
+    Meteor._debug("whoami this", this);
+    return this.getDefaultUser();
+  }
+
 };

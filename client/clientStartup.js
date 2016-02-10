@@ -7,7 +7,8 @@ Meteor.startup(() => {
   Log.info("Client startup");
   if (document.cookie) {
     Log.info("cookies exist, trying to login");
-    client.login(document.cookie);
+    console.log(drupal);
+    drupal.client.login(document.cookie);
   }
   else {
     Log.warn("No cookie: necessarily anonymous.");

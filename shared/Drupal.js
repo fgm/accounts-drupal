@@ -11,9 +11,36 @@ Log.info('Defining shared/Drupal');
  * @type {Drupal}
  */
 Drupal = class Drupal extends DrupalBase {
-  constructor(...args) {
-    super(...args);
+  constructor(accounts, meteor, log, client, server) {
+    super(accounts, meteor, log);
     this.props = {};
+    this.client = client;
+    this.server = server;
+
+    const methodNames = [
+      "initState",
+      "whoami"
+    ];
+    let methods = {};
+    methodNames.forEach((v) => {
+      let name = v + "Method";
+      let method = this.location === "client" ? client[name] : server[name];
+      methods[DrupalBase.SERVICE_NAME + "." + v] = () => {
+        return method;
+      };
+    });
+    meteor.methods(methods);
+
+    // - Initialize server-dependent state.
+    meteor.call('accounts-drupal.initState', (err, res) => {
+      if (err) {
+        throw new meteor.Error('init-state', err);
+      }
+      Object.assign(this.state, res);
+      if (this.location === "client") {
+        this.updateUser(document.cookie);
+      }
+    });
   }
 
   get accounts() {
@@ -40,6 +67,7 @@ Drupal = class Drupal extends DrupalBase {
     this.logger.debug("getting server");
     return this.props.server;
   }
+
 
   set server(server) {
     this.logger.info("setting server to " + (server ? server.constructor.name : 'null'));

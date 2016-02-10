@@ -1,3 +1,4 @@
+
 /**
  * @file
  *   Contains the DrupalServer class.
@@ -20,17 +21,20 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   The Meteor global.
    * @param {Log} logger
    *   the Meteor Log service.
+   * @param {Stream} stream
+   *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.
-   * @param {String} streamName
-   *   The name of the stream to use.
    *
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, logger, configuration, streamName) {
-    super(accounts, meteor, logger, streamName);
+  constructor(accounts, meteor, logger, stream, configuration) {
+    super(accounts, meteor, logger, stream);
     this.configuration = configuration;
+
+    // - Merge Meteor settings to instance.
+    Object.assign(this.settings, meteor.settings);
   }
 
   /**
@@ -90,6 +94,26 @@ DrupalServer = class DrupalServer extends DrupalBase {
     const result = _.intersection(defaultRootFields, this.configuration.rootFields);
     return result;
   }
+
+  /**
+   * Parse a cookie blob for value of the relevant session cookie.
+   *
+   * @param {string} cookieBlob
+   * @returns {undefined}
+   */
+  getSessionCookie(cookieBlob) {
+    cookieBlob = '; ' + cookieBlob;
+
+    var cookieName = this.state.cookieName;
+    var cookieValue;
+    var cookies = cookieBlob.split('; ' + cookieName + "=");
+
+    if (cookies.length == 2) {
+      cookieValue = cookies.pop().split(';').shift();
+    }
+
+    return cookieValue;
+  };
 
   /**
    * A replacement for the default user creation hook.
@@ -220,4 +244,84 @@ DrupalServer = class DrupalServer extends DrupalBase {
     this.accounts.addAutopublishFields(this.autopublishFields());
   }
 
+  /**
+   * Parse Meteor settings to initialize the SSO state from the server.
+   */
+  initStateMethod() {
+    var settings = Meteor.settings['drupal-sso'];
+    var site = settings.site;
+    var appToken = settings.appToken;
+
+    if (!settings) {
+      throw new Meteor.Error('invalid-settings', "Invalid settings: 'drupal-sso' key not found.");
+    }
+    if (!site) {
+      throw new Meteor.Error('invalid-settings', "Invalid settings: 'drupal-sso.site' key not found.");
+    }
+    if (!appToken) {
+      throw new Meteor.Error('invalid-settings', "Invalid settings: 'drupal-sso.appToken' key not found.");
+    }
+
+    var options = {
+      params: {
+        appToken: settings.appToken
+      }
+    };
+    try {
+      var ret = HTTP.get(site + "/meteor/siteInfo", options);
+      info = JSON.parse(ret.content);
+      info.online = true;
+    }
+    catch (err) {
+      info = {
+        cookieName: undefined,
+        anonymousName: undefined,
+        online: false
+      };
+      Meteor._debug("Error: ", err);
+    }
+    return info;
+  }
+
+  /**
+   * Call the Drupal whoami service.
+   *
+   * @param {string} cookieBlob
+   * @returns {*}
+   */
+  whoamiMethod(cookieBlob) {
+    // sso is a package global, initialized in server/sso.js Meteor.startup().
+    var cookieName = sso.state.cookieName;
+    var cookieValue = sso.getSessionCookie(cookieBlob);
+    var url = sso.settings['drupal-sso'].site + "/meteor/whoami";
+    var options = {
+      headers: {
+        'accept': 'application/json',
+        'cookie': cookieName + '=' + cookieValue
+      },
+      timeout: 10000,
+      time: true
+    };
+    Meteor._debug('Checking ' + cookieName + "=" + cookieValue + ' on ' + url);
+    var t0, t1;
+    try {
+      t0 = (new Date()).getTime();
+      var ret = HTTP.get(url, options);
+      t1 = (new Date()).getTime();
+      info = JSON.parse(ret.content);
+      t2 = (new Date()).getTime();
+      Meteor._debug("Success: ", t1 - t0, "msec later:", info);
+    }
+    catch (err) {
+      info = {
+        'uid': 0,
+        'name': 'Unresolved',
+        'roles': []
+      };
+      t1 = (new Date()).getTime();
+      Meteor._debug("Error: ", err, " in ", t1 - t0, "msec");
+    }
+
+    return info;
+  }
 };
