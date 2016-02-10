@@ -15,8 +15,9 @@
   },
   "public": {
     "accounts-drupal": {
-      "not-secret": "This field is visible on the client side:",
-      "not-secret": "the secret, share you will"
+      "not-secret": "Fields below public are visible on the client side:",
+      "not-secret": "the secret, share you will",
+      "autoLogin": false
     }
   }
 }

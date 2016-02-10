@@ -38,7 +38,7 @@ Drupal = class Drupal extends DrupalBase {
       }
       Object.assign(this.state, res);
       if (this.location === "client") {
-        this.updateUser(document.cookie);
+        this.client.updateUser(document.cookie);
       }
     });
   }

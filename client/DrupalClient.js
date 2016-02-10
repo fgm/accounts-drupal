@@ -27,9 +27,9 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.call = (...args) => (meteor.call(...args));
     this.userDep = new Tracker.Dependency();
     this.user = this.getDefaultUser();
-    
+
     // - Merge public settings to instance.
-    Object.assign(this.settings.client, meteor.settings.public);
+    Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
   }
 
   getDefaultUser() {
@@ -54,6 +54,16 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.userDep.depend();
     return this.user.roles;
   };
+
+  /**
+   * Is the auto-login feature enabled in settings.json ?
+   *
+   * @returns {boolean}
+   *   True if it is truthy, false otherwise.
+   */
+  isAutologinEnabled() {
+    return !!this.settings.client.autoLogin;
+  }
 
   /**
    * The method to use to perform login.
@@ -104,7 +114,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @param {string} cookies
    */
   updateUser(cookies) {
-    // XXX why do we do this (previously testin Meteor.isClient) ?
+    // XXX why do we do this (previously testing Meteor.isClient) ?
     if (true) {
       Meteor._debug('Setting up once on ' + this.STREAM_NAME);
       // Just listen once, since we rearm immediately.
@@ -114,7 +124,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
       });
     }
 
-    this.call('drupal-sso.whoami', cookies, (err, res) => {
+    this.call('accounts-drupal.whoami', cookies, (err, res) => {
       if (err) {
         throw new Meteor.Error('whoami', err);
       }

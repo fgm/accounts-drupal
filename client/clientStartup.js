@@ -5,12 +5,16 @@
 
 Meteor.startup(() => {
   Log.info("Client startup");
-  if (document.cookie) {
-    Log.info("cookies exist, trying to login");
-    console.log(drupal);
-    drupal.client.login(document.cookie);
+  if (client.isAutologinEnabled()) {
+    if (document.cookie) {
+      Log.info("Cookies exist, trying to login");
+      client.login(document.cookie);
+    }
+    else {
+      Log.warn("No cookie: necessarily anonymous.");
+    }
   }
   else {
-    Log.warn("No cookie: necessarily anonymous.");
+    Log.info("Auto-login not enabled in settings.");
   }
 });

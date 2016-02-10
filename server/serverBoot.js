@@ -7,10 +7,11 @@ Log.info('Server boot');
 
 // Server is package-global, but not exported.
 server = new DrupalServer(
-  Accounts,
-  Meteor,
-  Log,
+  // Upstream services.
+  Accounts, Meteor, Log,
+  // Package global.
   stream,
+  // Package services.
   new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, ServiceConfiguration)
 );
 
