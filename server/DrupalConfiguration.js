@@ -16,20 +16,28 @@ DrupalConfiguration = class DrupalConfiguration {
    *   The name of the service.
    * @param {Object} settings
    *   Meteor settings.
+   * @param {Log} logger
+   *   The Log service.
    * @param {Object} serviceConfiguration
    *   The ServiceConfiguration service, from the service-configuration package.
    *
    * @returns {DrupalConfiguration}
    *   A memory-only configuration instance.
    */
-  constructor(name, settings, serviceConfiguration) {
+  constructor(name, settings, logger, serviceConfiguration) {
     this.service = name;
-    this.secret = settings[this.service].secret;
-    this.rootFields = settings[this.service].rootFields || ["profile"];
-    this.notSecret = settings.public[this.service]["not-secret"];
+    this.logger = logger;
+    const serverSettings = settings[this.service];
+    // const clientSettings = settings.public[this.service];
+
+    this.site = serverSettings.site || "http://d8.fibo.dev";
+    this.appToken = serverSettings.appToken || "invalid-token";
+    this.rootFields = serverSettings.rootFields || ["profile"];
+
     this.configurations = serviceConfiguration.configurations;
 
-    if (typeof this.secret === "undefined" || this.secret !== this.notSecret) {
+    // This is how to signal an error: throw a ConfigError.
+    if (false) {
       throw new serviceConfiguration.ConfigError(this.service);
     }
   }
@@ -42,9 +50,9 @@ DrupalConfiguration = class DrupalConfiguration {
   persist(name) {
     const selector = { service: name };
     const serviceConfig = _.extend(_.clone(selector), {
-      notSecret: this.notSecret,
+      appToken: this.appToken,
       rootFields: this.rootFields,
-      secret: this.secret
+      site: this.site
     });
 
     this.configurations.upsert(selector, serviceConfig);

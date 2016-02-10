@@ -127,10 +127,20 @@ DrupalBase = class DrupalBase {
     return result;
   }
 
+  /**
+   * Abstract base method for "accounts-drupal:initState".
+   *
+   * @returns {void}
+   */
   initStateMethod() {
     throw new Meteor.Error('abstract-method', "initStateMethod is abstract: use a concrete implementation instead.");
   }
 
+  /**
+   * Abstract base method for "accounts-drupal:whoami".
+   *
+   * @returns {void}
+   */
   whoamiMethod(cookieBlob) {
     throw new Meteor.Error('abstract-method', "whoamiMehod is abstract: use a concrete implementation instead.");
   }

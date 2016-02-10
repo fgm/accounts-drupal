@@ -23,4 +23,5 @@ Meteor.startup(function () {
       drupal.server.emit();
     }, 1000);
   });
+  Log.info("HTTP routes bound.");
 });

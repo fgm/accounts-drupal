@@ -13,6 +13,16 @@ Log.info('Defining shared/Drupal');
 Drupal = class Drupal extends DrupalBase {
   constructor(accounts, meteor, log, client, server) {
     super(accounts, meteor, log);
+    if (this.location === "client") {
+      check(client, DrupalClient);
+    }
+    else if (this.location === "server") {
+      check(server, DrupalServer);
+    }
+    else {
+      throw new Meteor.Error("unknown-architecture", "Trying to create Drupal class not on client or server.");
+    }
+
     this.props = {};
     this.client = client;
     this.server = server;
@@ -22,6 +32,7 @@ Drupal = class Drupal extends DrupalBase {
       "whoami"
     ];
     let methods = {};
+
     methodNames.forEach((v) => {
       let name = v + "Method";
       let method = this.location === "client" ? client[name] : server[name];
@@ -31,7 +42,7 @@ Drupal = class Drupal extends DrupalBase {
     });
     meteor.methods(methods);
 
-    // - Initialize server-dependent state.
+    // - Initialize Drupal-dependent state.
     meteor.call('accounts-drupal.initState', (err, res) => {
       if (err) {
         throw new meteor.Error('init-state', err);
@@ -54,23 +65,23 @@ Drupal = class Drupal extends DrupalBase {
   }
 
   get client() {
-    this.logger.debug("getting client");
+    this.logger.debug("Getting client");
     return this.props.client;
   }
 
   set client(client) {
-    this.logger.info("setting client to " + (client ? client.constructor.name : 'null'));
+    this.logger.info("Setting client to " + (client ? client.constructor.name : 'null'));
     this.props.client = client;
   }
 
   get server() {
-    this.logger.debug("getting server");
+    this.logger.debug("Getting server");
     return this.props.server;
   }
 
 
   set server(server) {
-    this.logger.info("setting server to " + (server ? server.constructor.name : 'null'));
+    this.logger.info("Setting server to " + (server ? server.constructor.name : 'null'));
     this.props.server = server;
   }
 };

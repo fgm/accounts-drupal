@@ -5,21 +5,34 @@
 
 Log.info('Server boot');
 
-// Server is package-global, but not exported.
-server = new DrupalServer(
-  // Upstream services.
-  Accounts, Meteor, Log,
-  // Package global.
-  stream,
-  // Package services.
-  new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, ServiceConfiguration)
-);
+try {
+  let drupalConfiguration = new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, Log, ServiceConfiguration);
+  Log.info("Loaded configuration.");
 
-// Store configuration in database.
-server.configuration.persist();
+  // Server is package-global, but not exported.
+  server = new DrupalServer(
+    // Upstream services.
+    Accounts, Meteor, Log,
+    // Package global.
+    stream,
+    // Package services.
+    drupalConfiguration
+  );
+  Log.info("Created server instance.");
 
-// Declare automatic publications.
-server.registerAutopublish();
+  // Store configuration in database.
+  server.configuration.persist();
+  Log.info("Server configuration persisted to accounts service.");
 
-// Register the package as an accounts service.
-server.register();
+  // Declare automatic publications.
+  server.registerAutopublish();
+  Log.info("Automatic user fields published.");
+
+  // Register the package as an accounts service.
+  server.register();
+  Log.info("Drupal registered as an accounts service.");
+
+}
+catch (e) {Log.error(e);
+  //process.exit(1);
+}

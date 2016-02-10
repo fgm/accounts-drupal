@@ -32,9 +32,11 @@ DrupalServer = class DrupalServer extends DrupalBase {
   constructor(accounts, meteor, logger, stream, configuration) {
     super(accounts, meteor, logger, stream);
     this.configuration = configuration;
+    this.settings.server = {};
 
     // - Merge Meteor settings to instance.
-    Object.assign(this.settings, meteor.settings);
+    Object.assign(this.settings.server, meteor.settings[DrupalBase.SERVICE_NAME]);
+    Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
   }
 
   /**
@@ -245,26 +247,19 @@ DrupalServer = class DrupalServer extends DrupalBase {
   }
 
   /**
-   * Parse Meteor settings to initialize the SSO state from the server.
+   * Update Drupal-side information.
+   *
+   * @returns {Object}
+   *   - cookieName: the name of the session cookie used by the site.
+   *   - anonymousName: the name of the anonymous user to use when not logged in.
+   *   - online: site was available at last check.
    */
   initStateMethod() {
-    var settings = Meteor.settings['drupal-sso'];
-    var site = settings.site;
-    var appToken = settings.appToken;
-
-    if (!settings) {
-      throw new Meteor.Error('invalid-settings', "Invalid settings: 'drupal-sso' key not found.");
-    }
-    if (!site) {
-      throw new Meteor.Error('invalid-settings', "Invalid settings: 'drupal-sso.site' key not found.");
-    }
-    if (!appToken) {
-      throw new Meteor.Error('invalid-settings', "Invalid settings: 'drupal-sso.appToken' key not found.");
-    }
+    var site = this.settings.server.site;
 
     var options = {
       params: {
-        appToken: settings.appToken
+        appToken: this.settings.server.appToken
       }
     };
     try {
@@ -278,7 +273,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
         anonymousName: undefined,
         online: false
       };
-      Meteor._debug("Error: ", err);
+      Log.error(err);
     }
     return info;
   }
@@ -293,7 +288,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // sso is a package global, initialized in server/sso.js Meteor.startup().
     var cookieName = sso.state.cookieName;
     var cookieValue = sso.getSessionCookie(cookieBlob);
-    var url = sso.settings['drupal-sso'].site + "/meteor/whoami";
+    var url = this.settings.server.site + "/meteor/whoami";
     var options = {
       headers: {
         'accept': 'application/json',
