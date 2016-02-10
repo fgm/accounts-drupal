@@ -22,12 +22,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   the Meteor Log service.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.
+   * @param {String} streamName
+   *   The name of the stream to use.
    *
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, logger, configuration) {
-    super(accounts, meteor, logger);
+  constructor(accounts, meteor, logger, configuration, streamName) {
+    super(accounts, meteor, logger, streamName);
     this.configuration = configuration;
   }
 
@@ -53,6 +55,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
     };
 
     return fields;
+  }
+
+  /**
+   * Emit a SSO event on the SSO stream.
+   *
+   * @returns {void}
+   */
+  emit() {
+    this.stream.emit(DrupalSSO.EVENT_NAME);
   }
 
   /**
@@ -133,27 +144,25 @@ DrupalServer = class DrupalServer extends DrupalBase {
       return loginResult;
     }
 
-    const options = loginRequest[NAME];
+    const cookies = loginRequest[NAME];
 
     // Never forget to check tainted data like these.
     // noinspection JSCheckFunctionSignatures
-    for (option in options) {
-      check(option, String);
-      check(options[option], String);
+    for (name in cookies) {
+      this.checkCookie(name, cookies[name]);
     }
 
-    console.log("Drupal sso", sso);
     // Use our ever-so-sophisticated authentication logic.
-    if (!options.action) {
+    if (!cookies.action) {
       loginResult = {
         type: NAME,
         error: new Meteor.Error("The login action said not to login.")
       };
 
-      this.logger.warn({ app: NAME, message: `Login failed for user "${options.user}".` });
+      this.logger.warn({ app: NAME, message: `Login failed for user "${cookies.user}".` });
       return loginResult;
     }
-    this.logger.info({ app: NAME, message: `Login succeeded for user "${options.user}".` });
+    this.logger.info({ app: NAME, message: `Login succeeded for user "${cookies.user}".` });
 
     // In case of success, normalize the user id to lower case: MongoDB does not
     // support an efficient case-insensitive find().

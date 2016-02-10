@@ -32,7 +32,7 @@ Drupal = class Drupal extends DrupalBase {
   }
 
   set client(client) {
-    this.logger.info("setting client to", client ? client.constructor.name : 'null');
+    this.logger.info("setting client to " + (client ? client.constructor.name : 'null'));
     this.props.client = client;
   }
 
@@ -42,7 +42,7 @@ Drupal = class Drupal extends DrupalBase {
   }
 
   set server(server) {
-    this.logger.info("setting server to", server ? server.constructor.name : 'null');
+    this.logger.info("setting server to " + (server ? server.constructor.name : 'null'));
     this.props.server = server;
   }
 };

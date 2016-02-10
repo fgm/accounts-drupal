@@ -10,7 +10,8 @@ server = new DrupalServer(
   Accounts,
   Meteor,
   Log,
-  new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, ServiceConfiguration)
+  new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, ServiceConfiguration),
+  DrupalSSO.CHANNEL_NAME
 );
 
 // Store configuration in database.

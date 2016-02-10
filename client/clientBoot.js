@@ -8,7 +8,7 @@
 Log.info('Client boot');
 
 // Client is package-global but not exported.
-client = new DrupalClient(Accounts, Meteor, Log);
+client = new DrupalClient(Accounts, Meteor, Log, DrupalSSO.CHANNEL_NAME);
 
 /**
  * Need to wrap client.login in a closure to avoid overwriting this in login().
@@ -18,6 +18,3 @@ client = new DrupalClient(Accounts, Meteor, Log);
 Meteor.loginWithDrupal = function (...args) {
   return client.login(...args);
 };
-
-stream = new Meteor.Stream(DrupalSSO.CHANNEL_NAME);
-

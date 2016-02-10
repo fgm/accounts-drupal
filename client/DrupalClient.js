@@ -18,10 +18,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @param {Meteor} meteor
    *   The Meteor global.
    * @param {Log} logger
-   *   the Meteor Log service.
+   *   The Meteor Log service.
+   * @param {String} streamName
+   *   The name of the stream used for SSO notifications.
    */
-  constructor(accounts, meteor, logger) {
-    super(accounts, meteor, logger);
+  constructor(accounts, meteor, logger, streamName) {
+    super(accounts, meteor, logger, streamName);
   }
 
   /**
@@ -53,11 +55,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
       methodArguments,
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: `Login failed for user "${cookie}.` }));
+          console.log(err);
+          this.logger.warn(Object.assign(logArg, { message: "Drupal login failed." }));
         }
         else {
           console.log(res);
-          this.logger.info(Object.assign(logArg, { message: `Login succeeded for user "${cookie}.` }));
+          this.logger.info(Object.assign(logArg, { message: "Drupal login succeeded." }));
         }
         if (_.isFunction(callback)) {
           callback(err, res);
