@@ -105,7 +105,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   emit() {
-    this.stream.emit(DrupalSSO.EVENT_NAME);
+    this.stream.emit(this.EVENT_NAME);
   }
 
   /**

@@ -19,7 +19,7 @@ Meteor.startup(function () {
     res.writeHead(200);
     res.end('Send refresh request');
     Meteor.setTimeout(function () {
-      Log.info("Emitting refresh request.");
+      Log.info("Emitting deferred refresh request.");
       drupal.server.emit();
     }, 1000);
   });

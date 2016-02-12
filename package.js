@@ -40,7 +40,7 @@ Package.onUse(function (api) {
 
   api.use(coreDependencies);
 
-  //api.use('arunoda:streams@0.1.17');
+  // api.use('arunoda:streams@0.1.17');
   api.use('fgm:streams');
 
   var sharedPre = [
