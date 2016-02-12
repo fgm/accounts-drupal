@@ -49,6 +49,33 @@ DrupalServer = class DrupalServer extends DrupalBase {
   }
 
   /**
+   * Check a condition and if it fails, build a loginResult failure.
+   *
+   * @param {Boolean} condition
+   *   The condition to check.
+   * @param {String} message
+   *   The message for failure cases.
+   * @param {Boolean} notify
+   *   Log a fail result.
+   *
+   * @returns {Object|false}
+   *   - If the condition is false, a failing login result object.
+   *   - Otherwise, false.
+   */
+  loginCheck(condition, message, notify = true) {
+    let loginFailure = false;
+    if (!condition) {
+      loginFailure = {
+        app: this.SERVICE_NAME,
+        error: new Meteor.Error(message)
+      };
+      notify && this.logger.warn(loginFailure);
+    }
+
+  return loginFailure;
+}
+
+  /**
    * Return the list of onProfile fields available on Meteor.user().
    *
    * This is invoked only if autopublish is enabled.
@@ -165,7 +192,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    Meteor._debug('server login', loginRequest);
     let loginResult;
     const NAME = this.SERVICE_NAME;
 
@@ -174,41 +200,67 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // field matching our service name, i.e. "fake". To avoid false positives,
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
-    if (!loginRequest[NAME]) {
-      this.logger.debug({ app: NAME, message: 'Login not handled.' });
+    const cookies = loginRequest[NAME];
+    if (loginResult = this.loginCheck(cookies, "Login not handled.", false)) {
       return loginResult;
     }
 
-    const cookies = loginRequest[NAME];
+    this.logger.info({
+      app: NAME,
+      message: "Drupal login attempt",
+      cookies
+    });
 
-    // Never forget to check tainted data like these.
-    // noinspection JSCheckFunctionSignatures
-    for (name in cookies) {
-      this.checkCookie(name, cookies[name]);
+    // Shortcut: avoid WS call if Drupal is not available.
+    if (loginResult = this.loginCheck(this.state.online, "Drupal server is not online.")) {
+      return loginResult;
     }
+
+    // Shortcut: avoid WS call if cookie name is not the expected one.
+    const cookieName = this.state.cookieName;
+    const cookieValue = cookies[cookieName];
+    if (loginResult = this.loginCheck(cookieValue, "No cookie matches Drupal session name.")) {
+      return loginResult;
+    }
+
+    // Shortcut: avoid WS call if cookie value is malformed.
+    try {
+      // Never forget to check tainted data like these.
+      this.checkCookie(cookieName, cookieValue);
+    }
+    catch (e) {
+      let expectedException = e instanceof Match.Error;
+      if (loginResult = this.loginCheck(expectedException, "Malformed session cookie")) {
+        return loginResult;
+      }
+      throw e;
+    }
+
+    // Perform the actual web service call. Exceptions are caught and return
+    // an anonymous user information.
+    const userInfo = this.whoamiMethod(cookieName, cookieValue);
 
     // Use our ever-so-sophisticated authentication logic.
-    if (!cookies.action) {
-      loginResult = {
-        type: NAME,
-        error: new Meteor.Error("The login action said not to login.")
-      };
-
-      this.logger.warn({ app: NAME, message: `Login failed for user "${cookies.user}".` });
+    if (loginResult = this.loginCheck(userInfo.uid, "Session was not logged on Drupal.")) {
       return loginResult;
     }
-    this.logger.info({ app: NAME, message: `Login succeeded for user "${cookies.user}".` });
+
+    this.logger.info({
+      app: NAME,
+      message: `Login succeeded for user "${userInfo.name} (${userInfo.uid}). Roles: ` + JSON.stringify(userInfo.roles)
+    });
 
     // In case of success, normalize the user id to lower case: MongoDB does not
     // support an efficient case-insensitive find().
-    const submittedUserId = options.user.toLocaleLowerCase();
+    const submittedUserId = userInfo.name.toLocaleLowerCase();
 
     // Return a user
+    // TODO configure what goes to public/onProfile/offProfile in settings.
     const serviceData = {
       id: submittedUserId,
-      public: { "voodoo": "chile" },
-      onProfile: { some: "extra" },
-      offProfile: { more: "extra" }
+      public: userInfo,
+      onProfile: userInfo,
+      offProfile: userInfo
     };
 
     // Publish part of the package-specific user information.
@@ -217,7 +269,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       // so we can inject them if we so desire.
       profile: {},
       username: submittedUserId,
-      emails: [submittedUserId + "@example.com"],
+      emails: [],
       // But no other field is published unless autopublish is on.
       onlyWithAutopublish: "only with autopublish"
     };
@@ -260,16 +312,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *
    * This method can be used as a Drupal method (hence its name), but the
    * default logic does not require it.
-   * 
+   *
    * @returns {Object}
    *   - cookieName: the name of the session cookie used by the site.
    *   - anonymousName: the name of the anonymous user to use when not logged in.
    *   - online: site was available at last check.
    */
   initStateMethod() {
-    let info = {
-      online: "who knows"
-    };
+    let info;
 
     var site = this.settings.server.site;
 
@@ -285,7 +335,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     }
     catch (err) {
       info = {
-        anonymousName: undefined,
+        anonymousName: this.settings.server.anonymousName,
         cookieName: undefined,
         online: false
       };
@@ -297,13 +347,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
   /**
    * Call the Drupal whoami service.
    *
-   * @param {string} cookieBlob
-   * @returns {*}
+   * @param {String} cookieName
+   * @param {String} cookieValue
+   *
+   * @returns {Object}
+   *   - uid: a Drupal user id, 0 if not logged on Drupal
+   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
+   *   - roles: an array of role names, possibly empty.
    */
-  whoamiMethod(cookieBlob) {
-    // sso is a package global, initialized in server/sso.js Meteor.startup().
-    var cookieName = sso.state.cookieName;
-    var cookieValue = sso.getSessionCookie(cookieBlob);
+  whoamiMethod(cookieName, cookieValue) {
     var url = this.settings.server.site + "/meteor/whoami";
     var options = {
       headers: {
@@ -313,24 +365,24 @@ DrupalServer = class DrupalServer extends DrupalBase {
       timeout: 10000,
       time: true
     };
-    Meteor._debug('Checking ' + cookieName + "=" + cookieValue + ' on ' + url);
-    var t0, t1;
+    Meteor._debug("ws params", url, cookieName, cookieValue, options);
+    this.logger.info('Checking ' + cookieName + "=" + cookieValue + ' on ' + url);
+    let t0 = + new Date();
+    let t1 = t0;
     try {
-      t0 = (new Date()).getTime();
       var ret = HTTP.get(url, options);
-      t1 = (new Date()).getTime();
+      t1 = + new Date();
       info = JSON.parse(ret.content);
-      t2 = (new Date()).getTime();
-      Meteor._debug("Success: ", t1 - t0, "msec later:", info);
+      this.logger.info("Success: " + (t1 - t0) + " msec later: " + JSON.stringify(info));
     }
     catch (err) {
       info = {
         'uid': 0,
-        'name': 'Unresolved',
+        'name': this.state.anonymousName,
         'roles': []
       };
-      t1 = (new Date()).getTime();
-      Meteor._debug("Error: ", err, " in ", t1 - t0, "msec");
+      t1 = + new Date();
+      this.logger.error("Error: " + err.message + " in " + (t1 - t0) + " msec");
     }
 
     return info;
