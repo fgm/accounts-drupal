@@ -9,7 +9,7 @@
  * - it publishes its runtime service configuration
  */
 
-Log.info('Shared post-boot');
+Log.debug('Shared post-boot');
 
 if (typeof client === undefined) {
   client = null;

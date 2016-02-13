@@ -3,7 +3,7 @@
  *   The configuration of accounts-drupal.
  */
 
-Log.info("Defining server/DrupalConfiguration");
+Log.debug("Defining server/DrupalConfiguration");
 
 /**
  * Configure the service from its settings.

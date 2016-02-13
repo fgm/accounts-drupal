@@ -25,11 +25,45 @@ DrupalClient = class DrupalClient extends DrupalBase {
   constructor(accounts, meteor, logger, stream) {
     super(accounts, meteor, logger, stream);
     this.call = (...args) => (meteor.call(...args));
-    this.userDep = new Tracker.Dependency();
-    this.user = this.getDefaultUser();
 
     // - Merge public settings to instance.
     Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
+
+    if (this.isAutologinEnabled()) {
+      this.stream.on(this.EVENT_NAME, () => {
+        this.logger.info("Automatic login status update.");
+        this.login(document.cookie);
+      });
+    }
+  }
+
+  /**
+   * Convert a JS-style cookie string to a hash of Drupal-plausible cookies.
+   *
+   * @param {String} cookie
+   *   The cookie string in JS semicolon-separated format.
+   *
+   * @returns {Object}
+   *   A cookie-name:cookie-value hash.
+   */
+  cookies(cookie) {
+    check(cookie, String);
+
+    let asArray = cookie.split(";");
+    let result = {};
+    asArray.forEach((v) => {
+      let [ name, value ] = v.split("=");
+      try {
+        this.checkCookie(name, value);
+        result[name] = value;
+      }
+      catch (e) {
+        if (!(e instanceof Match.Error)) {
+          throw e;
+        }
+      }
+    });
+    return result;
   }
 
   getDefaultUser() {
@@ -39,21 +73,6 @@ DrupalClient = class DrupalClient extends DrupalBase {
       roles: ['anonymous user']
     };
   }
-
-  getUserId() {
-    this.userDep.depend();
-    return this.user.uid;
-  }
-
-  getUserName() {
-    this.userDep.depend();
-    return this.user.name;
-  };
-
-  getUserRoles() {
-    this.userDep.depend();
-    return this.user.roles;
-  };
 
   /**
    * Is the auto-login feature enabled in settings.json ?
@@ -80,7 +99,14 @@ DrupalClient = class DrupalClient extends DrupalBase {
     const cookies = this.cookies(cookie);
 
     if (_.isEmpty(cookies)) {
-      this.logger.warn(Object.assign(logArg, { message: "No cookie found, not trying to login." }));
+      if (this.accounts.userId()) {
+        this.logger.info("No cookie found: logging out.");
+        this.logout();
+      }
+      else {
+        this.logger.warn(Object.assign(logArg, {message: "No cookie found, not trying to login."}));
+      }
+      return;
     }
     let methodArgument = {};
 
@@ -93,13 +119,22 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.accounts.callLoginMethod({
       methodArguments,
       userCallback: (err, res) => {
+        let reArm;
         if (err) {
-          console.log(err);
-          this.logger.warn(Object.assign(logArg, { message: "Drupal login failed." }));
+          this.logger.warn(Object.assign(logArg, { message: "Not logged-in on Drupal." }));
+          this.logout();
+          reArm = false;
         }
         else {
-          console.log(res);
-          this.logger.info(Object.assign(logArg, { message: "Drupal login succeeded." }));
+          this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
+          reArm = true;
+        }
+        // With auto-login enabled, listening is constant, so do not arm once.
+        if (!this.isAutologinEnabled() && reArm) {
+          this.stream.once(this.EVENT_NAME, () => {
+            this.logger.info("Updating logged-in user.");
+            this.login(document.cookie);
+          });
         }
         if (_.isFunction(callback)) {
           callback(err, res);
@@ -107,6 +142,15 @@ DrupalClient = class DrupalClient extends DrupalBase {
       }
     });
   };
+
+  /**
+   * An optional helper to log out.
+   *
+   * @returns {void}
+   */
+  logout() {
+    this.accounts.logout();
+  }
 
   /**
    * Update the user information from the Drupal server based on the cookies.
@@ -123,15 +167,6 @@ DrupalClient = class DrupalClient extends DrupalBase {
         this.updateUser(document.cookie);
       });
     }
-
-    this.call('accounts-drupal.whoami', cookies, (err, res) => {
-      if (err) {
-        throw new Meteor.Error('whoami', err);
-      }
-
-      Object.assign(this.user, res);
-      this.userDep.changed();
-    });
   };
 
   initStateMethod() {

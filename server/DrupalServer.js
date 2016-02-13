@@ -4,7 +4,7 @@
  *   Contains the DrupalServer class.
  */
 
-Log.info("Defining server/DrupalServer");
+Log.debug("Defining server/DrupalServer");
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.

@@ -2,8 +2,7 @@
  * @file
  *   Server-side non-object code
  */
-
-Log.info('Server boot');
+Log.debug('Server boot');
 
 try {
   let drupalConfiguration = new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, Log, ServiceConfiguration);

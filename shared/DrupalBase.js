@@ -3,7 +3,7 @@
  *   Contains the DrupalBase class.
  */
 
-Log.info('Defining shared/DrupalBase');
+Log.debug('Defining shared/DrupalBase');
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -96,35 +96,6 @@ DrupalBase = class DrupalBase {
     });
 
     check({ name, value }, plausibleCookie);
-  }
-
-  /**
-   * Convert a JS-style cookie string to a hash of Drupal-plausible cookies.
-   *
-   * @param {String} cookie
-   *   The cookie string in JS semicolon-separated format.
-   *
-   * @returns {Object}
-   *   A cookie-name:cookie-value hash.
-   */
-  cookies(cookie) {
-    check(cookie, String);
-
-    let asArray = cookie.split(";");
-    let result = {};
-    asArray.forEach((v) => {
-      let [ name, value ] = v.split("=");
-      try {
-        this.checkCookie(name, value);
-        result[name] = value;
-      }
-      catch (e) {
-        if (!(e instanceof Match.Error)) {
-          throw e;
-        }
-      }
-    });
-    return result;
   }
 
   /**

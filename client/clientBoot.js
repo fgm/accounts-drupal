@@ -5,7 +5,7 @@
  * - Meteor.loginWithDrupal([options, ]callback)
  */
 
-Log.info('Client boot');
+Log.debug('Client boot');
 
 // Client is package-global but not exported.
 client = new DrupalClient(Accounts, Meteor, Log, stream);
@@ -15,6 +15,6 @@ client = new DrupalClient(Accounts, Meteor, Log, stream);
  *
  * @param args
  */
-Meteor.loginWithDrupal = function (...args) {
-  return client.login(...args);
+Meteor.loginWithDrupal = function () {
+  return client.login(document.cookie);
 };

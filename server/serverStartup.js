@@ -3,7 +3,7 @@
  *   Server-side startup code.
  */
 
-Log.info("Loading server/startup");
+Log.debug("Loading server/startup");
 
 Meteor.startup(function () {
   Log.info("Startup server/sso");
