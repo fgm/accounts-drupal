@@ -19,15 +19,26 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   The Meteor global.
    * @param {Log} logger
    *   The Meteor Log service.
+   * @param {Template} template
+   *   The Meteor Template service.
    * @param {Stream} stream
    *   The stream used by the package.
    */
-  constructor(accounts, meteor, logger, stream) {
+  constructor(accounts, meteor, logger, template, stream) {
     super(accounts, meteor, logger, stream);
     this.call = (...args) => (meteor.call(...args));
+    this.template = template;
+    this.user = meteor.user.bind(this);
 
     // - Merge public settings to instance.
-    Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
+    Object.assign(this.settings.client, meteor.settings.public[this.SERVICE_NAME]);
+
+    meteor.call('accounts-drupal.initState', (err, res) => {
+      if (err) {
+        return;
+      }
+      this.state = res;
+    });
 
     if (this.isAutologinEnabled()) {
       this.stream.on(this.EVENT_NAME, () => {
@@ -35,6 +46,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
         this.login(document.cookie);
       });
     }
+
+    this.registerHelpers();
   }
 
   /**
@@ -94,8 +107,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *
    * @return {void}
    */
-  login (cookie, callback = null) {
-    let logArg = { app: this.SERVICE_NAME };
+  login(cookie, callback = null) {
+    let logArg = {app: this.SERVICE_NAME};
     const cookies = this.cookies(cookie);
 
     if (_.isEmpty(cookies)) {
@@ -121,12 +134,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
       userCallback: (err, res) => {
         let reArm;
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: "Not logged-in on Drupal." }));
+          this.logger.warn(Object.assign(logArg, {message: "Not logged-in on Drupal."}));
           this.logout();
           reArm = false;
         }
         else {
-          this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
+          this.logger.info(Object.assign(logArg, {message: "Logged-in on Drupal."}));
           reArm = true;
         }
         // With auto-login enabled, listening is constant, so do not arm once.
@@ -152,31 +165,52 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.accounts.logout();
   }
 
-  /**
-   * Update the user information from the Drupal server based on the cookies.
-   *
-   * @param {string} cookies
-   */
-  updateUser(cookies) {
-    // XXX why do we do this (previously testing Meteor.isClient) ?
-    if (true) {
-      Meteor._debug('Setting up once on ' + this.STREAM_NAME);
-      // Just listen once, since we rearm immediately.
-      this.stream.once(this.EVENT_NAME, (e) => {
-        // In fat-arrow functions, "this" is not redefined.
-        this.updateUser(document.cookie);
-      });
-    }
-  };
-
   initStateMethod() {
     Log.info("Client stub for initStateMethod, doing nothing.");
-  }
-
-  whoamiMethod(cookieBlob) {
-    Log.info("Client stub for whoamiMehod, returning default user.");
-    Meteor._debug("whoami this", this);
     return this.getDefaultUser();
   }
 
+  registerHelpers() {
+    const helpers = [
+      { name: "accountsDrupalUserId", code: () => client.uid },
+      { name: "accountsDrupalUsername", code: () => client.name },
+      { name: "accountsDrupalRoles", code: () => client.roles }
+    ];
+
+    helpers.forEach(({name, code}) => this.template.registerHelper(name, code));
+  }
+
+  /**
+   * Call the Drupal whoami service.
+   *
+   * @param {String} cookieName
+   * @param {String} cookieValue
+   *
+   * @returns {Object}
+   *   - uid: a Drupal user id, 0 if not logged on Drupal
+   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
+   *   - roles: an array of role names, possibly empty.
+   */
+  whoamiMethod(cookieName, cookieValue) {
+    this.logger.info("Client stub for whoamiMehod, returning default user.");
+    return this.getDefaultUser();
+  }
+
+  get uid() {
+    const user = this.user();
+    const uid = user ? user.profile[client.SERVICE_NAME].uid : 0;
+    return uid;
+  }
+
+  get name() {
+    const user = this.user();
+    const name = user ? user.username : this.state.anonymousName;
+    return name;
+  }
+
+  get roles() {
+    const user = this.user();
+    const roles = user ? this.user().profile[this.SERVICE_NAME].roles : ["anonymous user"];
+    return roles;
+  }
 };

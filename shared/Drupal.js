@@ -35,10 +35,10 @@ Drupal = class Drupal extends DrupalBase {
 
     methodNames.forEach((v) => {
       let name = v + "Method";
-      let method = this.location === "client" ? client[name] : server[name];
-      methods[DrupalBase.SERVICE_NAME + "." + v] = () => {
-        return method;
-      };
+      let method = this.location === "client"
+        ? client[name].bind(client)
+        : server[name].bind(server);
+      methods[DrupalBase.SERVICE_NAME + "." + v] = method;
     });
     meteor.methods(methods);
   }

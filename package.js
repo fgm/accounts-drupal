@@ -28,13 +28,14 @@ Package.onUse(function (api) {
   // Dependencies.
   var coreDependencies = [
     "ecmascript",
-    "check",
     "accounts-base",
-    "service-configuration",
+    "check",
+    "http",
     "logging",
+    "service-configuration",
+    "templating",
     "tracker",
     "underscore",
-    "http",
     "webapp"
   ];
 

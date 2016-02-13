@@ -39,7 +39,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
 
     // - Initialize Drupal-dependent state.
-    this.state = this.initStateMethod();
+    this.state = this.initStateMethod(true);
     if (this.state.online === true) {
       Log.info("Retrieved Drupal site information.");
     }
@@ -313,13 +313,18 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * This method can be used as a Drupal method (hence its name), but the
    * default logic does not require it.
    *
+   * @param {Boolean} refresh
+   *   Perform a Drupal WS call if true, otherwise use the instance information.
+   *
    * @returns {Object}
    *   - cookieName: the name of the session cookie used by the site.
    *   - anonymousName: the name of the anonymous user to use when not logged in.
    *   - online: site was available at last check.
    */
-  initStateMethod() {
-    let info;
+  initStateMethod(refresh = false) {
+    if (!refresh) {
+      return this.state;
+    }
 
     var site = this.settings.server.site;
 
@@ -328,6 +333,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
         appToken: this.settings.server.appToken
       }
     };
+
+    let info;
     try {
       var ret = HTTP.get(site + "/meteor/siteInfo", options);
       info = JSON.parse(ret.content);
@@ -339,8 +346,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
         cookieName: undefined,
         online: false
       };
-      Log.error(err);
+      this.logger.error(err);
     }
+
     return info;
   }
 

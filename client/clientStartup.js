@@ -15,4 +15,5 @@ Meteor.startup(() => {
   else {
     Log.info("Auto-login not enabled in settings.");
   }
+
 });

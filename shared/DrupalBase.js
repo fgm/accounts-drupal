@@ -110,9 +110,15 @@ DrupalBase = class DrupalBase {
   /**
    * Abstract base method for "accounts-drupal:whoami".
    *
-   * @returns {void}
+   * @param {String} cookieName
+   * @param {String} cookieValue
+   *
+   * @returns {Object}
+   *   - uid: a Drupal user id, 0 if not logged on Drupal
+   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
+   *   - roles: an array of role names, possibly empty.
    */
-  whoamiMethod(cookieBlob) {
+  whoamiMethod(cookieName, cookieValue) {
     throw new Meteor.Error('abstract-method', "whoamiMehod is abstract: use a concrete implementation instead.");
   }
 
