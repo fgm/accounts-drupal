@@ -373,7 +373,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
       timeout: 10000,
       time: true
     };
-    Meteor._debug("ws params", url, cookieName, cookieValue, options);
     this.logger.info('Checking ' + cookieName + "=" + cookieValue + ' on ' + url);
     let t0 = + new Date();
     let t1 = t0;
