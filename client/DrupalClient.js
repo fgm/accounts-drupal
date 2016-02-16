@@ -65,7 +65,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
     let asArray = cookie.split(";");
     let result = {};
     asArray.forEach((v) => {
-      let [ name, value ] = v.split("=");
+      let [ name, value ] = v.trim().split("=");
       try {
         this.checkCookie(name, value);
         result[name] = value;

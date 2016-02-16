@@ -86,7 +86,7 @@ DrupalBase = class DrupalBase {
         that.logger.info(message)
         throw new Match.Error(message);
       }
-      const VALUE_REGEXP = /^[\w-]{32,128}$/i;
+      const VALUE_REGEXP = /^[\w_-]{32,128}$/i;
       if (!VALUE_REGEXP.exec(value)) {
         const message = `Checked invalid cookie value ${value}.`;
         that.logger.info(message)
