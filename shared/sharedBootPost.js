@@ -9,12 +9,12 @@
  * - it publishes its runtime service configuration
  */
 
-Log.debug('Shared post-boot');
+Log.debug("Shared post-boot");
 
-if (typeof client === undefined) {
+if (typeof client === "undefined") {
   client = null;
 }
-if (typeof server === undefined) {
+if (typeof server === "undefined") {
   server = null;
 }
 drupal = new Drupal(Accounts, Meteor, Log, client, server);

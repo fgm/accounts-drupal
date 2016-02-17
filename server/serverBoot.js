@@ -2,7 +2,7 @@
  * @file
  *   Server-side non-object code
  */
-Log.debug('Server boot');
+Log.debug("Server boot");
 
 try {
   // Configure stream to allow anyone to read.
@@ -10,32 +10,33 @@ try {
 
   // Configure Authentifier.
   let drupalConfiguration = new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, Log, ServiceConfiguration);
-  Log.info("Loaded configuration.");
+  Log.debug("Loaded configuration.");
 
   // Server is package-global, but not exported.
   server = new DrupalServer(
     // Upstream services.
-    Accounts, Meteor, Log,
+    Accounts, Meteor, Log, Match,
     // Package global.
     stream,
     // Package services.
-    drupalConfiguration
+    drupalConfiguration,
+    HTTP,
+    JSON
   );
-  Log.info("Created server instance.");
+  Log.debug("Created server instance.");
 
   // Store configuration in database.
   server.configuration.persist();
-  Log.info("Server configuration persisted to accounts service.");
+  Log.debug("Server configuration persisted to accounts service.");
 
   // Declare automatic publications.
   server.registerAutopublish();
-  Log.info("Automatic user fields published.");
+  Log.debug("Automatic user fields published.");
 
   // Register the package as an accounts service.
   server.register();
-  Log.info("Drupal registered as an accounts service.");
-
+  Log.debug("Drupal registered as an accounts service.");
 }
-catch (e) {Log.error(e);
-  //process.exit(1);
+catch (e) {
+  Log.error(e);
 }

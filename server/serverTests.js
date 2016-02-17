@@ -10,31 +10,64 @@ const SERVICE_NAME = "mock-service";
  *   A basic settings object.
  */
 function mockSettings(serviceName) {
-  let mockConfiguration =  { public: {}};
-  mockConfiguration[serviceName] = {
-    secret: "any"
-  };
+  let mockConfiguration = { public: {} };
+  mockConfiguration[serviceName] = {};
   mockConfiguration.public[serviceName] = {};
   return mockConfiguration;
 }
 
 Tinytest.add("Testing correct configuration", function (test) {
   const settings = mockSettings(SERVICE_NAME);
-  settings.public[SERVICE_NAME]["not-secret"] = "any";
+  settings.public[SERVICE_NAME].autoLogin = true;
 
-  var f = new DrupalConfiguration(SERVICE_NAME, settings, ServiceConfiguration);
+  let f = new DrupalConfiguration(SERVICE_NAME, settings, Log, ServiceConfiguration);
 
   test.equal("DrupalConfiguration", f.constructor.name);
 });
 
 Tinytest.add("Testing incorrect configuration", function (test) {
-  const settings = mockSettings(SERVICE_NAME);
-  settings.public[SERVICE_NAME]["not-secret"] = "other";
+  let configuration = { configurations: null };
+  let settings = {};
+  let instantiation;
 
-  var instantiation = function () {
-    new DrupalConfiguration(SERVICE_NAME, settings, ServiceConfiguration);
+  // Null settings.
+  instantiation = function () {
+    return new DrupalConfiguration(SERVICE_NAME, null, Log, configuration);
   };
+  test.throws(instantiation, function (e) {
+    return e.errorType === "Meteor.Error" && e.name === "Error" && e.error === "drupal-configuration";
+  });
 
+  // Empty non-null settings.
+  instantiation = function () {
+    return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
+  };
+  test.throws(instantiation, function (e) {
+    return e.errorType === "Meteor.Error" && e.name === "Error" && e.error === "drupal-configuration";
+  });
+
+  // Non-boolean autoLogin.
+  settings = { public: {} };
+  settings.public[SERVICE_NAME] = { autoLogin: 69 };
+  instantiation = function () {
+    return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
+  };
+  test.throws(instantiation, function (e) {
+    return e.errorType === "Meteor.Error" && e.name === "Error" && e.error === "drupal-configuration";
+  });
+
+  // Missing ConfigError method on configuration service.
+  settings[SERVICE_NAME] = {};
+  instantiation = function () {
+    return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
+  };
+  test.throws(instantiation, function (e) {
+    return e.errorType === "Meteor.Error" && e.name === "Error" && e.error === "drupal-configuration";
+  });
+
+  // Missing configurations on configuration service.
+  configuration = _.clone(ServiceConfiguration);
+  configuration.configurations = null;
   test.throws(instantiation, function (e) {
     return e.name === "ServiceConfiguration.ConfigError";
   });

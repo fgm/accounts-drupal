@@ -5,6 +5,20 @@
  * Note: package.js is NOT passed to Babel on Meteor 1.2/1.2.1, so not ES6.
  */
 
+// Dependencies.
+const coreDependencies = [
+  "ecmascript",
+  "accounts-base",
+  "check",
+  "http",
+  "logging",
+  "service-configuration",
+  "templating",
+  "tracker",
+  "underscore",
+  "webapp"
+];
+
 Package.describe({
   name: "accounts-drupal",
   version: "0.0.1",
@@ -17,52 +31,37 @@ Package.describe({
 Package.onUse(function (api) {
   function files(location, names) {
     const base = location + "/";
-    const files = names.map(function (v, k, a) {
+    return names.map(function (v) {
       return base + v + ".js";
     });
-    return files;
   }
 
   api.versionsFrom("1.2.1");
 
-  // Dependencies.
-  var coreDependencies = [
-    "ecmascript",
-    "accounts-base",
-    "check",
-    "http",
-    "logging",
-    "service-configuration",
-    "templating",
-    "tracker",
-    "underscore",
-    "webapp"
-  ];
-
   api.use(coreDependencies);
 
   // api.use('arunoda:streams@0.1.17');
-  api.use('fgm:streams');
+  api.use("fgm:streams");
 
-  var sharedPre = [
+  const sharedPre = [
     "DrupalBase",
     "sharedBootPre"
   ];
 
-  var clientOnly = [
+  const clientOnly = [
     "DrupalClient",
     "clientBoot",
     "clientStartup"
   ];
 
-  var serverOnly = [
+  const serverOnly = [
     "DrupalConfiguration",
     "DrupalServer",
     "serverBoot",
     "serverStartup"
   ];
 
-  var sharedPost = [
+  const sharedPost = [
     "Drupal",
     "sharedBootPost",
     "sharedStartup"
@@ -81,13 +80,10 @@ Package.onUse(function (api) {
 
 
 Package.onTest(function (api) {
-  api.use("ecmascript");
+  api.use(coreDependencies);
   api.use("tinytest");
-  api.use("accounts-base");
   api.use("accounts-drupal");
   api.use("mongo");
-  api.use("service-configuration");
-  api.use("underscore");
 
   api.addFiles("server/DrupalConfiguration.js", "server");
   api.addFiles("server/serverTests.js", "server");

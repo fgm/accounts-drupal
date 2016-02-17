@@ -27,7 +27,15 @@ DrupalConfiguration = class DrupalConfiguration {
   constructor(name, settings, logger, serviceConfiguration) {
     this.service = name;
     this.logger = logger;
+
+    if (_.isEmpty(settings)) {
+      throw new Meteor.Error("drupal-configuration", `Settings are empty.`);
+    }
+
     const serverSettings = settings[this.service];
+    if (typeof serverSettings === "undefined") {
+      throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name} root key.`);
+    }
     // const clientSettings = settings.public[this.service];
 
     this.site = serverSettings.site || "http://d8.fibo.dev";
@@ -36,14 +44,21 @@ DrupalConfiguration = class DrupalConfiguration {
 
     this.configurations = serviceConfiguration.configurations;
 
-    // This is how to signal an error: throw a ConfigError.
-    if (false) {
-      throw new serviceConfiguration.ConfigError(this.service);
+    if (!serviceConfiguration.ConfigError || serviceConfiguration.ConfigError.prototype.name !== "ServiceConfiguration.ConfigError") {
+      throw new Meteor.Error("drupal-configuration", "Invalid service-configuration: invalid ConfigError.");
+    }
+
+    // Ensure configurations looks usable.
+    if (!typeof this.configurations === "object" || _.isEmpty(this.configurations)) {
+      throw new ServiceConfiguration.ConfigError(name);
     }
   }
 
   /**
    * Update the stored configuration from the current instance.
+   *
+   * @param {String} name
+   *   The name of the Drupa login service.
    *
    * @return {void}
    */

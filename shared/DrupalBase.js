@@ -3,7 +3,7 @@
  *   Contains the DrupalBase class.
  */
 
-Log.debug('Defining shared/DrupalBase');
+Log.debug("Defining shared/DrupalBase");
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -20,6 +20,8 @@ DrupalBase = class DrupalBase {
    *   The Meteor global.
    * @param {Log} logger
    *   The Meteor logging service.
+   * @param {Match} match
+   *   The Meteor check matcher service.
    * @param {Stream} stream
    *   The stream used by the package.
    *
@@ -32,26 +34,31 @@ DrupalBase = class DrupalBase {
    * - true -> succeeded,valuers are those provided by the server.
    *
    * @returns {DrupalBase}
+   *   An unconfigured base instance, meant for child use.
+   *
    * @constructor
    */
-  constructor(accounts, meteor, logger, stream) {
+  constructor(accounts, meteor, logger, match, stream) {
     this.accounts = accounts || null;
     this.logger = logger || null;
-    this.stream = stream;
+    this.match = match || null;
+    this.stream = stream || null;
     this.settings = { client: {} };
 
     this.state = {
-      anonymousName: 'anome',
-      cookieName: 'SESS___4___8__12__16__20__24__28__32',
+      anonymousName: "anome",
+      cookieName: "SESS___4___8__12__16__20__24__28__32",
       // Online is only set once the initialization has completed.
       online: "construction"
     };
 
     if (meteor.isClient) {
       this.location = "client";
-    } else if (meteor.isServer) {
+    }
+    else if (meteor.isServer) {
       this.location = "server";
-    } else {
+    }
+    else {
       // XXX What about Cordova ?
       this.location = null;
     }
@@ -60,37 +67,40 @@ DrupalBase = class DrupalBase {
   /**
    * Perform a check() on a cookie for Drupal 8 plausibility.
    *
-   * @param {String} name
-   *   The cookie name.
-   * @param {String} value
-   *   The cookie value (id).
-   *
    * Where checks like this should throw instead of returning false: in Meteor
    * 1.2.* and 1.3 <= beta5, testSubtree() runs the check a second time if it
    * returned instead of throwing. Look for "if (pattern instanceof Where) {" in
    * match.js#testSubtree() for details.
    *
    * @see testSubtree()
-
+   *
    * @see \Drupal\Component\Utility\Crypt::randomBytesBase64().
+   *
+   * @param {String} name
+   *   The cookie name.
+   * @param {String} value
+   *   The cookie value (id).
+   *
+   * @returns {Boolean}
+   *   Did plausibility checks pass ?
    */
   checkCookie(name, value) {
     // Unlike a fat arrow function, Match.Where redefines this.
     let that = this;
-    const plausibleCookie = Match.Where(function ({ name, value }) {
-      check(name, String);
-      check(value, String);
+    const plausibleCookie = this.match.Where(function ({ name: checkedName, value: checkedValue }) {
+      check(checkedName, String);
+      check(checkedValue, String);
       const NAME_REGEXP = /^SESS[0-9A-F]{32}$/i;
-      if (!NAME_REGEXP.exec(name)) {
-        const message = `Checked invalid cookie name ${name}.`;
-        that.logger.info(message)
-        throw new Match.Error(message);
+      if (!NAME_REGEXP.exec(checkedName)) {
+        const message = `Checked invalid cookie name ${checkedName}.`;
+        that.logger.info(message);
+        throw new this.match.Error(message);
       }
       const VALUE_REGEXP = /^[\w_-]{32,128}$/i;
-      if (!VALUE_REGEXP.exec(value)) {
-        const message = `Checked invalid cookie value ${value}.`;
-        that.logger.info(message)
-        throw new Match.Error(message);
+      if (!VALUE_REGEXP.exec(checkedValue)) {
+        const message = `Checked invalid cookie value ${checkedValue}.`;
+        that.logger.info(message);
+        throw new this.match.Error(message);
       }
       return true;
     });
@@ -104,14 +114,16 @@ DrupalBase = class DrupalBase {
    * @returns {void}
    */
   initStateMethod() {
-    throw new Meteor.Error('abstract-method', "initStateMethod is abstract: use a concrete implementation instead.");
+    throw new Meteor.Error("abstract-method", "initStateMethod is abstract: use a concrete implementation instead.");
   }
 
   /**
    * Abstract base method for "accounts-drupal:whoami".
    *
    * @param {String} cookieName
+   *   The cookie name.
    * @param {String} cookieValue
+   *   The cookie value.
    *
    * @returns {Object}
    *   - uid: a Drupal user id, 0 if not logged on Drupal
@@ -119,7 +131,7 @@ DrupalBase = class DrupalBase {
    *   - roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
-    throw new Meteor.Error('abstract-method', "whoamiMehod is abstract: use a concrete implementation instead.");
+    throw new Meteor.Error("abstract-method", `whoamiMehod(${cookieName}, ${cookieValue}) is abstract: use a concrete implementation instead.`);
   }
 
   /**

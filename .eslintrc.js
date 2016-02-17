@@ -14,16 +14,27 @@ module.exports = {
     "_": true,
 
     "Accounts": true,
+    "HTTP": true,
+    "Match": true,
     "Meteor": true,
     "Package": true,
     "ServiceConfiguration": true,
     "Session": true,
     "Template": true,
     "Tinytest": true,
+    "WebApp": true,
     "check": true,
 
     // The globals defined in this package.
-    "Drupal": true
+    "Drupal": true,
+    "DrupalBase": true,
+    "DrupalClient": true,
+    "DrupalConfiguration": true,
+    "DrupalServer": true,
+    "client": true,
+    "drupal": true,
+    "server": true,
+    "stream": true
   },
 
   "plugins": ["react"],
@@ -238,7 +249,7 @@ module.exports = {
     //
     "max-depth": [2, 3], // specify the maximum depth that blocks can be nested (off by default)
     "max-len": [2, 200, 2], // specify the maximum length of a line in your program (off by default)
-    "max-params": [2, 5], // limits the number of parameters that can be used in the function declaration. (off by default)
+    "max-params": [2, 10], // limits the number of parameters that can be used in the function declaration. (off by default)
     "max-statements": 0, // specify the maximum number of statement allowed in a function (off by default)
     "no-bitwise": 0, // disallow use of bitwise operators (off by default)
     "no-plusplus": 2, // disallow use of unary operators, ++ and -- (off by default)

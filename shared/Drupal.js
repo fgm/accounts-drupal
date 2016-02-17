@@ -3,7 +3,7 @@
  *   Contains the Drupal composite class.
  */
 
-Log.debug('Defining shared/Drupal');
+Log.debug("Defining shared/Drupal");
 
 /**
  * The shared class composing DrupalClient and DrupalServer.
@@ -46,11 +46,11 @@ Drupal = class Drupal extends DrupalBase {
   get accounts() {
     if (this.location === "client") {
       return this.client.accounts;
-    } else if (this.location === "server") {
-      return this.server.accounts;
-    } else {
-      return null;
     }
+    if (this.location === "server") {
+      return this.server.accounts;
+    }
+    return null;
   }
 
   get client() {
@@ -59,7 +59,7 @@ Drupal = class Drupal extends DrupalBase {
   }
 
   set client(client) {
-    this.logger.debug("Setting client to " + (client ? client.constructor.name : 'null'));
+    this.logger.debug("Setting client to " + (client ? client.constructor.name : "null"));
     this.props.client = client;
   }
 
@@ -68,9 +68,8 @@ Drupal = class Drupal extends DrupalBase {
     return this.props.server;
   }
 
-
   set server(server) {
-    this.logger.debug("Setting server to " + (server ? server.constructor.name : 'null'));
+    this.logger.debug("Setting server to " + (server ? server.constructor.name : "null"));
     this.props.server = server;
   }
 };

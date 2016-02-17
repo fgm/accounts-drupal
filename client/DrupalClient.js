@@ -12,6 +12,7 @@ Log.debug("Defining client/DrupalClient");
  */
 DrupalClient = class DrupalClient extends DrupalBase {
   /**
+   * Client constructor.
    *
    * @param {AccountsClient} accounts
    *   The AccountsClient service.
@@ -19,13 +20,17 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   The Meteor global.
    * @param {Log} logger
    *   The Meteor Log service.
-   * @param {Template} template
-   *   The Meteor Template service.
+   * @param {Match} match
+   *   The Meteor check matcher service.
    * @param {Stream} stream
    *   The stream used by the package.
+   * @param {Template} template
+   *   The Meteor Template service.
+   *
+   * @constructor
    */
-  constructor(accounts, meteor, logger, template, stream) {
-    super(accounts, meteor, logger, stream);
+  constructor(accounts, meteor, logger, match, stream, template) {
+    super(accounts, meteor, logger, match, stream);
     this.call = (...args) => (meteor.call(...args));
     this.template = template;
     this.user = meteor.user.bind(this);
@@ -33,7 +38,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
     // - Merge public settings to instance.
     Object.assign(this.settings.client, meteor.settings.public[this.SERVICE_NAME]);
 
-    meteor.call('accounts-drupal.initState', (err, res) => {
+    meteor.call("accounts-drupal.initState", (err, res) => {
       if (err) {
         return;
       }
@@ -61,11 +66,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
    */
   cookies(cookie) {
     check(cookie, String);
-
     let asArray = cookie.split(";");
     let result = {};
     asArray.forEach((v) => {
-      let [ name, value ] = v.trim().split("=");
+      let [name, value] = v.trim().split("=");
       try {
         this.checkCookie(name, value);
         result[name] = value;
@@ -82,8 +86,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
   getDefaultUser() {
     return {
       uid: 0,
-      name: 'undefined name',
-      roles: ['anonymous user']
+      name: "undefined name",
+      roles: ["anonymous user"]
     };
   }
 
@@ -108,7 +112,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @return {void}
    */
   login(cookie, callback = null) {
-    let logArg = {app: this.SERVICE_NAME};
+    let logArg = { app: this.SERVICE_NAME };
     const cookies = this.cookies(cookie);
 
     if (_.isEmpty(cookies)) {
@@ -117,7 +121,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
         this.logout();
       }
       else {
-        this.logger.warn(Object.assign(logArg, {message: "No cookie found, not trying to login."}));
+        this.logger.warn(Object.assign(logArg, { message: "No cookie found, not trying to login." }));
       }
       return;
     }
@@ -134,12 +138,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
       userCallback: (err, res) => {
         let reArm;
         if (err) {
-          this.logger.warn(Object.assign(logArg, {message: "Not logged-in on Drupal."}));
+          this.logger.warn(Object.assign(logArg, { message: "Not logged-in on Drupal." }));
           this.logout();
           reArm = false;
         }
         else {
-          this.logger.info(Object.assign(logArg, {message: "Logged-in on Drupal."}));
+          this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
           reArm = true;
         }
         // With auto-login enabled, listening is constant, so do not arm once.
@@ -154,7 +158,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
         }
       }
     });
-  };
+  }
 
   /**
    * An optional helper to log out.
@@ -177,14 +181,16 @@ DrupalClient = class DrupalClient extends DrupalBase {
       { name: "accountsDrupalRoles", code: () => client.roles }
     ];
 
-    helpers.forEach(({name, code}) => this.template.registerHelper(name, code));
+    helpers.forEach(({ name, code }) => this.template.registerHelper(name, code));
   }
 
   /**
    * Call the Drupal whoami service.
    *
    * @param {String} cookieName
+   *   The cookie name.
    * @param {String} cookieValue
+   *   The cookie value.
    *
    * @returns {Object}
    *   - uid: a Drupal user id, 0 if not logged on Drupal
@@ -192,7 +198,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   - roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
-    this.logger.info("Client stub for whoamiMehod, returning default user.");
+    this.logger.info(`Client stub for whoamiMehod(${cookieName}, ${cookieValue}), returning default user.`);
     return this.getDefaultUser();
   }
 

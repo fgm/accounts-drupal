@@ -21,17 +21,25 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   The Meteor global.
    * @param {Log} logger
    *   the Meteor Log service.
+   * @param {Match} match
+   *   The Meteor check matcher service.
    * @param {Stream} stream
    *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.
+   * @param {HTTP} http
+   *   The HTTP service.
+   * @param {JSON} json
+   *   The JSON service.
    *
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, logger, stream, configuration) {
-    super(accounts, meteor, logger, stream);
+  constructor(accounts, meteor, logger, match, stream, configuration, http, json) {
+    super(accounts, meteor, logger, match, stream);
     this.configuration = configuration;
+    this.http = http;
+    this.json = json;
     this.settings.server = {};
 
     // - Merge Meteor settings to instance.
@@ -41,10 +49,10 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // - Initialize Drupal-dependent state.
     this.state = this.initStateMethod(true);
     if (this.state.online === true) {
-      Log.info("Retrieved Drupal site information.");
+      logger.debug("Retrieved Drupal site information.");
     }
     else {
-      throw new meteor.Error('init-state', "Could not reach Drupal server.");
+      throw new meteor.Error("init-state", "Could not reach Drupal server.");
     }
   }
 
@@ -69,11 +77,13 @@ DrupalServer = class DrupalServer extends DrupalBase {
         app: this.SERVICE_NAME,
         error: new Meteor.Error(message)
       };
-      notify && this.logger.warn(loginFailure);
+      if (notify) {
+        this.logger.warn(loginFailure);
+      }
     }
 
-  return loginFailure;
-}
+    return loginFailure;
+  }
 
   /**
    * Return the list of onProfile fields available on Meteor.user().
@@ -137,21 +147,23 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * Parse a cookie blob for value of the relevant session cookie.
    *
    * @param {string} cookieBlob
+   *   A JavaScript standard cookie string.
+   *
    * @returns {undefined}
    */
   getSessionCookie(cookieBlob) {
-    cookieBlob = '; ' + cookieBlob;
+    let homogeneousCookieBlob = "; " + cookieBlob;
 
-    var cookieName = this.state.cookieName;
-    var cookieValue;
-    var cookies = cookieBlob.split('; ' + cookieName + "=");
+    let cookieName = this.state.cookieName;
+    let cookieValue;
+    let cookies = homogeneousCookieBlob.split(`; ${cookieName}=`);
 
-    if (cookies.length == 2) {
-      cookieValue = cookies.pop().split(';').shift();
+    if (cookies.length === 2) {
+      cookieValue = cookies.pop().split(";").shift();
     }
 
     return cookieValue;
-  };
+  }
 
   /**
    * A replacement for the default user creation hook.
@@ -192,7 +204,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    let loginResult;
     const NAME = this.SERVICE_NAME;
 
     // A login request goes through all these handlers to find its login handler.
@@ -201,25 +212,28 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
     const cookies = loginRequest[NAME];
-    if (loginResult = this.loginCheck(cookies, "Login not handled.", false)) {
+    let loginResult = this.loginCheck(cookies, "Login not handled.", false);
+    if (loginResult) {
       return loginResult;
     }
 
-    this.logger.info({
+    this.logger.debug({
       app: NAME,
       message: "Drupal login attempt",
       cookies
     });
 
     // Shortcut: avoid WS call if Drupal is not available.
-    if (loginResult = this.loginCheck(this.state.online, "Drupal server is not online.")) {
+    loginResult = this.loginCheck(this.state.online, "Drupal server is not online.");
+    if (loginResult) {
       return loginResult;
     }
 
     // Shortcut: avoid WS call if cookie name is not the expected one.
     const cookieName = this.state.cookieName;
     const cookieValue = cookies[cookieName];
-    if (loginResult = this.loginCheck(cookieValue, "No cookie matches Drupal session name.")) {
+    loginResult = this.loginCheck(cookieValue, "No cookie matches Drupal session name.");
+    if (loginResult) {
       return loginResult;
     }
 
@@ -230,7 +244,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
     }
     catch (e) {
       let expectedException = e instanceof Match.Error;
-      if (loginResult = this.loginCheck(expectedException, "Malformed session cookie")) {
+      loginResult = this.loginCheck(expectedException, "Malformed session cookie");
+      if (loginResult) {
         return loginResult;
       }
       throw e;
@@ -241,13 +256,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
     const userInfo = this.whoamiMethod(cookieName, cookieValue);
 
     // Use our ever-so-sophisticated authentication logic.
-    if (loginResult = this.loginCheck(userInfo.uid, "Session was not logged on Drupal.")) {
+    loginResult = this.loginCheck(userInfo.uid, "Session was not logged on Drupal.");
+    if (loginResult) {
       return loginResult;
     }
 
-    this.logger.info({
+    this.logger.debug({
       app: NAME,
-      message: `Login succeeded for user "${userInfo.name} (${userInfo.uid}). Roles: ` + JSON.stringify(userInfo.roles)
+      message: `Login succeeded for user "${userInfo.name} (${userInfo.uid}). Roles: ` + this.json.stringify(userInfo.roles)
     });
 
     // In case of success, normalize the user id to lower case: MongoDB does not
@@ -326,9 +342,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
       return this.state;
     }
 
-    var site = this.settings.server.site;
+    let site = this.settings.server.site;
 
-    var options = {
+    let options = {
       params: {
         appToken: this.settings.server.appToken
       }
@@ -336,14 +352,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     let info;
     try {
-      var ret = HTTP.get(site + "/meteor/siteInfo", options);
-      info = JSON.parse(ret.content);
+      let ret = this.http.get(site + "/meteor/siteInfo", options);
+      info = this.json.parse(ret.content);
       info.online = true;
     }
     catch (err) {
       info = {
         anonymousName: this.settings.server.anonymousName,
-        cookieName: undefined,
+        cookieName: null,
         online: false
       };
       this.logger.error(err);
@@ -356,7 +372,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * Call the Drupal whoami service.
    *
    * @param {String} cookieName
+   *   The cookie name.
    * @param {String} cookieValue
+   *   The cookie value. May be null.
    *
    * @returns {Object}
    *   - uid: a Drupal user id, 0 if not logged on Drupal
@@ -364,32 +382,33 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
-    var url = this.settings.server.site + "/meteor/whoami";
-    var options = {
+    let url = this.settings.server.site + "/meteor/whoami";
+    let info;
+    let options = {
       headers: {
-        'accept': 'application/json',
-        'cookie': cookieName + '=' + cookieValue
+        "accept": "application/json",
+        "cookie": cookieName + "=" + cookieValue
       },
       timeout: 10000,
       time: true
     };
-    this.logger.info('Checking ' + cookieName + "=" + cookieValue + ' on ' + url);
-    let t0 = + new Date();
+    this.logger.info(`Checking ${cookieName}=${cookieValue} on ${url}.`);
+    let t0 = +new Date();
     let t1 = t0;
     try {
-      var ret = HTTP.get(url, options);
-      t1 = + new Date();
-      info = JSON.parse(ret.content);
-      this.logger.info("Success: " + (t1 - t0) + " msec later: " + JSON.stringify(info));
+      let ret = this.http.get(url, options);
+      t1 = +new Date();
+      info = this.json.parse(ret.content);
+      this.logger.info(`Success: ${t1 - t0} msec later: ${this.json.stringify(info)}.`);
     }
     catch (err) {
       info = {
-        'uid': 0,
-        'name': this.state.anonymousName,
-        'roles': []
+        "uid": 0,
+        "name": this.state.anonymousName,
+        "roles": []
       };
-      t1 = + new Date();
-      this.logger.error("Error: " + err.message + " in " + (t1 - t0) + " msec");
+      t1 = +new Date();
+      this.logger.error(`Error: ${err.message} in ${t1 - t0} msec.`);
     }
 
     return info;
