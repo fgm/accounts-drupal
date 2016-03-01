@@ -94,13 +94,13 @@ DrupalBase = class DrupalBase {
       if (!NAME_REGEXP.exec(checkedName)) {
         const message = `Checked invalid cookie name ${checkedName}.`;
         that.logger.info(message);
-        throw new this.match.Error(message);
+        throw new that.match.Error(message);
       }
       const VALUE_REGEXP = /^[\w_-]{32,128}$/i;
       if (!VALUE_REGEXP.exec(checkedValue)) {
         const message = `Checked invalid cookie value ${checkedValue}.`;
         that.logger.info(message);
-        throw new this.match.Error(message);
+        throw new that.match.Error(message);
       }
       return true;
     });

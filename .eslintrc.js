@@ -15,6 +15,7 @@ module.exports = {
 
     "Accounts": true,
     "HTTP": true,
+    "Log": true,
     "Match": true,
     "Meteor": true,
     "Package": true,
