@@ -6,7 +6,7 @@ This is an accounts package for Meteor 1.2 and 1.3, using Drupal sessions transp
 - Any user with a session on the Drupal server is automatically logged in on Meteor, without any UI-level intervention
 - Switching from anonymous to authenticated (and vice-versa) on Drupal automatically refreshes the status on connected Meteor applications
 - Changes in the Drupal user account fields and roles reflects in real-time on connected Meteor applications.
-- No dependency on [Drupal DDP] or any intervening `ddp.js` Node server.
+- No dependency on [Drupal DDP] nor any intervening `ddp.js` Node server.
 
 ## Requirements
 
