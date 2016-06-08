@@ -21,7 +21,7 @@ const coreDependencies = [
 
 Package.describe({
   name: "fgm:accounts-drupal",
-  version: "0.2.2",
+  version: "0.2.3",
   summary: "A Meteor 1.2/1.3 accounts system using Drupal 8 sessions.",
   git: "https://github.com/FGM/accounts-drupal",
   documentation: "README.md"
@@ -87,4 +87,3 @@ Package.onTest(function (api) {
   api.addFiles("server/DrupalConfiguration.js", "server");
   api.addFiles("server/serverTests.js", "server");
 });
-

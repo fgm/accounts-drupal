@@ -1,19 +1,22 @@
 {
+  "//": "The fields outside /public are only visible on the server side:",
   "accounts-drupal": {
-    "site": "The fields outside /public are only visible on the server side:",
-    "site": "http://d8.fibo.dev",
+    "site": "http://drupal8.example.org",
+    "site_options": {
+      "//": "You can add any option in this object, most usefully \"auth\": \"user:password\""
+    },
     "anonymousName": "Anome",
     "appToken": "sometoken",
 
-    "rootFields": "An array of field names to be exposed as root properties on the user object:",
-    "rootFields": "- profile should be exposed, because it is part of accounts-base.",
-    "rootFields": "- username and emails belong to accounts-password, but have specific handling in accounts-base too.",
-    "rootFields": "- No other field can be added at user root without tweaking the users publication",
+    "//": "An array of field names to be exposed as root properties on the user object:",
+    "//": "- profile should be exposed, because it is part of accounts-base.",
+    "//": "- username and emails belong to accounts-password, but have specific handling in accounts-base too.",
+    "//": "- No other field can be added at user root without tweaking the users publication",
     "rootFields": [ "profile", "username", "emails", "onlyWithAutopublish"]
   },
   "public": {
     "accounts-drupal": {
-      "autoLogin": "Fields below public are visible on the client side:",
+      "//": "Fields below public are visible on the client side:",
       "autoLogin": true
     }
   }

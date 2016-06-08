@@ -32,8 +32,9 @@ The package can be tested once added to an application. Note that the `test-pack
     cd <your application>
     meteor add accounts-drupal
 
-    # Run the package test suite.
-    meteor test-packages accounts-drupal --settings packages/accounts-drupal/example.settings.json
+    # Run the package test suite. Assuming the package has been installed
+    # locally, you can use its settings.json, otherwise use yours.
+    meteor test-packages fgm:accounts-drupal --settings packages/accounts-drupal/example.settings.json
 
     # Open your browser at http://localhost:3000 to observe the test results.
 

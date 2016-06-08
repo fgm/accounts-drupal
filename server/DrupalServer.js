@@ -344,11 +344,13 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     let site = this.settings.server.site;
 
-    let options = {
+    const default_options = {
       params: {
         appToken: this.settings.server.appToken
       }
     };
+    const settings_options = this.settings.server.site_options;
+    let options = Object.assign(default_options, settings_options);
 
     let info;
     try {
@@ -382,9 +384,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
-    let url = this.settings.server.site + "/meteor/whoami";
-    let info;
-    let options = {
+    const url = this.settings.server.site + "/meteor/whoami";
+    const settings_options = this.settings.server.site_options;
+    const default_options = {
       headers: {
         "accept": "application/json",
         "cookie": cookieName + "=" + cookieValue
@@ -392,6 +394,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
       timeout: 10000,
       time: true
     };
+    let options = Object.assign(default_options, settings_options);
+    let info;
+
     this.logger.info(`Checking ${cookieName}=${cookieValue} on ${url}.`);
     let t0 = +new Date();
     let t1 = t0;
