@@ -96,14 +96,12 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - forOtherUsers: an array of fields published to other users
    */
   autopublishFields() {
-    const rootFields = this.getRootFields();
-
-    const allFields = ["services." + this.SERVICE_NAME];
-    const publicFields = [allFields + ".public"];
+    const allFields = `services.${this.SERVICE_NAME}`;
+    const publicFields = `${allFields}.public`;
 
     const fields = {
-      forLoggedInUser: rootFields.concat(allFields),
-      forOtherUsers: rootFields.concat(publicFields)
+      forLoggedInUser: [allFields],
+      forOtherUsers: [publicFields]
     };
 
     return fields;
@@ -290,7 +288,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
       onlyWithAutopublish: "only with autopublish"
     };
     userOptions.profile[NAME] = serviceData.onProfile;
-
     return this.accounts.updateOrCreateUserFromExternalService(NAME, serviceData, userOptions);
   }
 
