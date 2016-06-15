@@ -19,6 +19,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   The AccountsServer service.
    * @param {Meteor} meteor
    *   The Meteor global.
+   * @param {Collection} Collection
+   *   The Mongo.Collection service
    * @param {Log} logger
    *   the Meteor Log service.
    * @param {Match} match
@@ -35,12 +37,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, logger, match, stream, configuration, http, json) {
+  constructor(accounts, meteor, Collection, logger, match, stream, configuration, http, json) {
     super(accounts, meteor, logger, match, stream);
+    this.collection = new Collection(`${DrupalServer.SERVICE_NAME}_updates`);
     this.configuration = configuration;
     this.http = http;
     this.json = json;
     this.settings.server = {};
+
+    this.setupUpdatesObserver();
 
     // - Merge Meteor settings to instance.
     Object.assign(this.settings.server, meteor.settings[DrupalBase.SERVICE_NAME]);
@@ -341,13 +346,13 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     let site = this.settings.server.site;
 
-    const default_options = {
+    const defaultOptions = {
       params: {
         appToken: this.settings.server.appToken
       }
     };
-    const settings_options = this.settings.server.site_options;
-    let options = Object.assign(default_options, settings_options);
+    const settingsOptions = this.settings.server.site_options;
+    let options = Object.assign(defaultOptions, settingsOptions);
 
     let info;
     try {
@@ -368,6 +373,62 @@ DrupalServer = class DrupalServer extends DrupalBase {
   }
 
   /**
+   * Set up the updates notification mechanism.
+   *
+   * - Initialize the TTL index on the package updates collection
+   * - Observe it.
+   *
+   * @returns {void}
+   */
+  setupUpdatesObserver() {
+    this.collection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
+    this.collection.find({}).observe({
+      added: () => this.emit(),
+      changed: () => this.emit()
+    });
+  }
+
+  /**
+   * Store a user update request to the DB.
+   *
+   * @param {Object} query
+   *   Used keys:
+   *   - {int} userId
+   *   - {string} eventName
+   *     - login
+   *     - logout
+   *     - update
+   *     - delete
+   *  A "delay" key is present but is only for information: it is expected to
+   *  have been used by the route controller, not to be used to add an extra
+   *  delay while storing the update.
+   *
+   * @returns {void}
+   */
+  storeUpdateRequest(query) {
+    const delay = parseInt(query.delay, 10) || 0;
+    const userId = parseInt(query.userId, 10) || 0;
+    const validOps = ["delete", "login", "logout", "update"];
+
+    if (validOps.indexOf(query.op) === -1 || !userId) {
+      this.logger.warn("Invalid update request, ignored.", {
+        delay,
+        op: query.op,
+        userId: query.userId
+      });
+      return;
+    }
+    const update = {
+      createdAt: new Date(),
+      delay,
+      op: query.op,
+      userId
+    };
+    this.logger.debug("Storing update", update);
+    this.collection.insert(update);
+  }
+
+  /**
    * Call the Drupal whoami service.
    *
    * @param {String} cookieName
@@ -382,8 +443,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   whoamiMethod(cookieName, cookieValue) {
     const url = this.settings.server.site + "/meteor/whoami";
-    const settings_options = this.settings.server.site_options;
-    const default_options = {
+    const settingsOptions = this.settings.server.site_options;
+    const defaultOptions = {
       headers: {
         "accept": "application/json",
         "cookie": cookieName + "=" + cookieValue
@@ -391,7 +452,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       timeout: 10000,
       time: true
     };
-    let options = Object.assign(default_options, settings_options);
+    let options = Object.assign(defaultOptions, settingsOptions);
     let info;
 
     this.logger.info(`Checking ${cookieName}=${cookieValue} on ${url}.`);

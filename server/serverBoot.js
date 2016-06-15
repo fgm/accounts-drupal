@@ -15,7 +15,7 @@ try {
   // Server is package-global, but not exported.
   server = new DrupalServer(
     // Upstream services.
-    Accounts, Meteor, Log, Match,
+    Accounts, Meteor, Mongo.Collection, Log, Match,
     // Package global.
     stream,
     // Package services.

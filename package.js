@@ -12,6 +12,7 @@ const coreDependencies = [
   "check",
   "http",
   "logging",
+  "mongo",
   "service-configuration",
   "templating",
   "tracker",
@@ -21,7 +22,7 @@ const coreDependencies = [
 
 Package.describe({
   name: "fgm:accounts-drupal",
-  version: "0.2.3",
+  version: "0.2.4",
   summary: "A Meteor 1.2/1.3 accounts system using Drupal 8 sessions.",
   git: "https://github.com/FGM/accounts-drupal",
   documentation: "README.md"

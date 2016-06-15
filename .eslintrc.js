@@ -18,6 +18,7 @@ module.exports = {
     "Log": true,
     "Match": true,
     "Meteor": true,
+    "Mongo": true,
     "Package": true,
     "ServiceConfiguration": true,
     "Session": true,
@@ -120,7 +121,6 @@ module.exports = {
     "no-caller": 2, // disallow use of arguments.caller or arguments.callee
     "no-div-regex": 2, // disallow division operators explicitly at beginning of regular expression (off by default)
     "no-else-return": 2, // disallow else after a return in an if (off by default)
-    "no-empty-label": 2, // disallow use of labels for anything other then loops and switches
     "no-eq-null": 2, // disallow comparisons to null without a type-checking operator (off by default)
     "no-eval": 2, // disallow use of eval()
     "no-extend-native": 2, // disallow adding to native types
@@ -199,6 +199,7 @@ module.exports = {
     "func-style": 0, // enforces use of function declarations or expressions (off by default)
     "jsx-quotes": [1, "prefer-double"],
     "key-spacing": [1, {"beforeColon": false, "afterColon": true}], // enforces spacing between keys and values in object literal properties
+    "keyword-spacing": [1, {"before": true, "after": true }], // require a space after certain keywords (off by default)
     "linebreak-style": [2, "unix"],
     "max-nested-callbacks": [1, 3], // specify the maximum depth callbacks can be nested (off by default)
     "new-cap": [1, {"newIsCap": true, "capIsNew": false}], // require a capital letter for constructors
@@ -223,12 +224,10 @@ module.exports = {
     "semi": [2, "always"], // require or disallow use of semicolons instead of ASI
     "semi-spacing": [1, {"before": false, "after": true}], // enforce spacing before and after semicolons
     "sort-vars": 0, // sort variables within the same declaration block (off by default)
-    "space-after-keywords": [1, "always"], // require a space after certain keywords (off by default)
     "space-before-blocks": [1, "always"], // require or disallow space before blocks (off by default)
     "space-before-function-paren": [1, {"anonymous": "always", "named": "never"}], // require or disallow space before function opening parenthesis (off by default)
     "space-in-parens": [1, "never"], // require or disallow spaces inside parentheses (off by default)
     "space-infix-ops": [2, {"int32Hint": true}], // require spaces around operators
-    "space-return-throw-case": [2], // require a space after return, throw, and case
     "space-unary-ops": [1, {"words": true, "nonwords": false}], // Require or disallow spaces before/after unary operators (words on by default, nonwords off by default)
     "spaced-comment": [1, "always"], // require or disallow a space immediately following the // in a line comment (off by default)
     "wrap-regex": 0, // require regex literals to be wrapped in parentheses (off by default)

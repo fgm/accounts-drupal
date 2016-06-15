@@ -17,4 +17,5 @@ if (typeof client === "undefined") {
 if (typeof server === "undefined") {
   server = null;
 }
+
 drupal = new Drupal(Accounts, Meteor, Log, client, server);
