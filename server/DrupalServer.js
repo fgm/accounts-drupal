@@ -113,6 +113,16 @@ DrupalServer = class DrupalServer extends DrupalBase {
   }
 
   /**
+   * Fix the profile update problem.
+   * @see https://github.com/meteor/meteor/issues/7213
+   *
+   * @param {int} uid
+   */
+  cleanUser(uid) {
+    Meteor.users.remove({'profile.accounts-drupal.uid': uid.toString()});
+  }
+
+  /**
    * Emit a SSO event on the SSO stream.
    *
    * @returns {void}
@@ -383,8 +393,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
   setupUpdatesObserver() {
     this.collection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
     this.collection.find({}).observe({
-      added: () => this.emit(),
-      changed: () => this.emit()
+      added: (item) => {
+        item.userId && this.cleanUser(item.userId);
+        this.emit();
+      },
+      changed: (item) => {
+        item.userId && this.cleanUser(item.userId);
+        this.emit()
+      }
     });
   }
 
