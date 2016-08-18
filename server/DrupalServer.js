@@ -116,10 +116,13 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * Fix the profile update problem.
    * @see https://github.com/meteor/meteor/issues/7213
    *
-   * @param {int} uid
+   * @param {string} uid
+   *   A drupal user id.
+   *
+   * @returns {void}
    */
   cleanUser(uid) {
-    Meteor.users.remove({'profile.accounts-drupal.uid': uid.toString()});
+    Meteor.users.remove({ "profile.accounts-drupal.uid": uid });
   }
 
   /**
@@ -399,7 +402,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       },
       changed: (item) => {
         item.userId && this.cleanUser(item.userId);
-        this.emit()
+        this.emit();
       }
     });
   }
@@ -423,7 +426,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   storeUpdateRequest(query) {
     const delay = parseInt(query.delay, 10) || 0;
-    const userId = parseInt(query.userId, 10) || 0;
+    const userId = parseInt(query.userId, 10).toString() || 0;
     const validOps = ["delete", "login", "logout", "update"];
 
     if (validOps.indexOf(query.op) === -1 || !userId) {
