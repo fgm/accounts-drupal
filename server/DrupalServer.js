@@ -39,7 +39,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   constructor(accounts, meteor, Collection, logger, match, stream, configuration, http, json) {
     super(accounts, meteor, logger, match, stream);
-    this.collection = new Collection(`${DrupalServer.SERVICE_NAME}_updates`);
+    this.collection = this.getCollection(meteor);
     this.configuration = configuration;
     this.http = http;
     this.json = json;
@@ -119,6 +119,22 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   emit() {
     this.stream.emit(this.EVENT_NAME);
+  }
+
+  /**
+   * Return the collection used for updates.
+   *
+   * @param {Meteor} meteor
+   *   The Meteor service
+   *
+   * @returns {Mongo.Collection|Meteor.Collection|*}
+   *   The updates collection.
+   */
+  getCollection(meteor) {
+    const rawName = `${DrupalServer.SERVICE_NAME}_updates`;
+    const name = rawName.replace('-', '_');
+    const collection = new meteor.Collection(name);
+    return collection;
   }
 
   /**
@@ -391,41 +407,56 @@ DrupalServer = class DrupalServer extends DrupalBase {
   /**
    * Store a user update request to the DB.
    *
-   * @param {Object} query
+   * @param {Object} rawQuery
    *   Used keys:
-   *   - {int} userId
-   *   - {string} eventName
-   *     - login
-   *     - logout
-   *     - update
-   *     - delete
-   *  A "delay" key is present but is only for information: it is expected to
-   *  have been used by the route controller, not to be used to add an extra
-   *  delay while storing the update.
+   *   - {int} userId: the Drupal user id
+   *   - {string} eventName: the name of the event
+   *     - "user_delete", "user_login", "user_logout", "user_update",
+   *     - "field_delete", "field_insert", "field_update",
+   *     - "entity_field_update"
+   *   - {int} delay: the delay to wait before inserting the event, in msec.
    *
    * @returns {void}
    */
-  storeUpdateRequest(query) {
-    const delay = parseInt(query.delay, 10) || 0;
-    const userId = parseInt(query.userId, 10) || 0;
-    const validOps = ["delete", "login", "logout", "update"];
+  storeUpdateRequest(rawQuery) {
+    const DEFAULT_DELAY = 1000;
 
-    if (validOps.indexOf(query.op) === -1 || !userId) {
+    const query = rawQuery || {};
+    const event = String(query.event);
+    const userId = parseInt(query.userId, 10) || 0;
+
+    // If there is any kind of delay ensure it is a strictly positive integer.
+    let usDelay = query.delay;
+    const delay = (typeof usDelay !== 'undefined')
+      ? parseInt(usDelay, 10) || DEFAULT_DELAY
+      : 0;
+
+    const validEvents = [
+      "user_delete", "user_login", "user_logout", "user_update",
+      "field_delete", "field_insert", "field_update",
+      "entity_field_update"
+    ];
+
+    if (validEvents.indexOf(query.event) === -1 || !userId) {
       this.logger.warn("Invalid update request, ignored.", {
         delay,
-        op: query.op,
-        userId: query.userId
+        event,
+        userId
       });
       return;
     }
     const update = {
       createdAt: new Date(),
       delay,
-      op: query.op,
+      event,
       userId
     };
     this.logger.debug("Storing update", update);
-    this.collection.insert(update);
+    // Always use a timeout: it will be 0.
+    Meteor.setTimeout(() => {
+      update.insertedAt = new Date();
+      this.collection.insert(update);
+    }, delay);
   }
 
   /**
