@@ -22,7 +22,7 @@ DrupalBase = class DrupalBase {
    *   The Meteor logging service.
    * @param {Match} match
    *   The Meteor check matcher service.
-   * @param {Stream} stream
+   * @param {Streamer} stream
    *   The stream used by the package.
    *
    * Notice that the returned instance has asynchronous behavior: its state

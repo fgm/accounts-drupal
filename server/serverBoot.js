@@ -6,7 +6,8 @@ Log.debug("Server boot");
 
 try {
   // Configure stream to allow anyone to read.
-  stream.permissions.read(() => true);
+  stream.allowRead('all');
+  stream.allowWrite('none');
 
   // Configure Authentifier.
   let drupalConfiguration = new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, Log, ServiceConfiguration);

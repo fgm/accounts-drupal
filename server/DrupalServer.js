@@ -25,7 +25,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   the Meteor Log service.
    * @param {Match} match
    *   The Meteor check matcher service.
-   * @param {Stream} stream
+   * @param {Streamer} stream
    *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.

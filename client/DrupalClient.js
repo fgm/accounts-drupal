@@ -22,7 +22,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   The Meteor Log service.
    * @param {Match} match
    *   The Meteor check matcher service.
-   * @param {Stream} stream
+   * @param {Streamer} stream
    *   The stream used by the package.
    * @param {Template} template
    *   The Meteor Template service.

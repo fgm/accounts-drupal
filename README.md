@@ -13,19 +13,24 @@ This is an accounts package for Meteor 1.2 to 1.4, using Drupal sessions transpa
 - Meteor 1.2.x, 1.3.x, or 1.4.x
 - Drupal 8.0.x, 8.1.x or 8.2.x
 - The Drupal [meteor module] from FGM's Github, not to be confused with the existing [meteor sandbox] from drupal.org.
-- The cookie domain for the Meteor application must be the same or a subdomain of the Drupal site. This is a consequence of [cookie scope]. Using the same domain on different IP ports works.
+- The cookie domain for the Meteor application *must* be the same or a subdomain of the Drupal site. This is a consequence of [cookie scope]. Using the same domain on different IP ports works.
 
 [cookie scope]: https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
 [meteor module]: https://github.com/FGM/meteor
 [meteor sandbox]: https://www.drupal.org/sandbox/rgarand/2020935
 [Drupal DDP]: https://www.drupal.org/sandbox/bfodeke/2354859
 
-If you are using Meteor 1.3.3 or a more recent version, you need to disable update buffering on the client, or the client will never receive notifications from the server, like this:
+New in 0.2.6: if you disabled update buffering on the client using code like 
+the fragment below to support Meteor 1.3.3 and later with earlier versions of 
+this package which relied on `arunoda:streams` or the `fgm:streams` fork, this 
+is no longer needed:
 
     Meteor.startup(function () {
       Meteor.connection._bufferedWritesInterval = 0;
     });
 
+The package now uses `rocketchat:streamer` instead, so you *should* remove this
+line to take advantage of the buffered writes introduced in Meteor 1.3.3.
 
 # Running a demo
 # Configuring the package
@@ -40,7 +45,7 @@ The package can be tested once added to an application. Note that the `test-pack
     meteor add accounts-drupal
 
     # Run the package test suite. Assuming the package has been installed
-    # locally, you can use its settings.json, otherwise use yours.
+    # locally, you can use its example.settings.json, otherwise use yours.
     meteor test-packages fgm:accounts-drupal --settings packages/accounts-drupal/example.settings.json
 
     # Open your browser at http://localhost:3000 to observe the test results.

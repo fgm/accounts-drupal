@@ -2,7 +2,7 @@
  * @file
  *   Package description file for accounts-drupal.
  *
- * Note: package.js is NOT passed to Babel on Meteor 1.2/1.3, so not ES6.
+ * Note: package.js is NOT passed to Babel on Meteor 1.2-1.4, so no ES6.
  */
 
 // Dependencies.
@@ -22,7 +22,7 @@ const coreDependencies = [
 
 Package.describe({
   name: "fgm:accounts-drupal",
-  version: "0.2.5",
+  version: "0.2.6",
   summary: "A Meteor 1.2/1.3/1.4 accounts system using Drupal 8 sessions.",
   git: "https://github.com/FGM/accounts-drupal",
   documentation: "README.md"
@@ -40,8 +40,7 @@ Package.onUse(function (api) {
 
   api.use(coreDependencies);
 
-  // api.use('arunoda:streams@0.1.17');
-  api.use("fgm:streams@0.1.18");
+  api.use('rocketchat:streamer@0.5.0');
 
   const sharedPre = [
     "DrupalBase",
