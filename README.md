@@ -10,8 +10,8 @@ This is an accounts package for Meteor 1.2 and 1.3, using Drupal sessions transp
 
 ## Requirements
 
-- Meteor 1.2.x or 1.3.x
-- Drupal 8.0.x or 8.1.x
+- Meteor 1.2.x, 1.3.x, or 1.4.x
+- Drupal 8.0.x, 8.1.x or 8.2.x
 - The Drupal [meteor module] from FGM's Github, not to be confused with the existing [meteor sandbox] from drupal.org.
 - The cookie domain for the Meteor application must be the same or a subdomain of the Drupal site. This is a consequence of [cookie scope]. Using the same domain on different IP ports works.
 
@@ -19,6 +19,13 @@ This is an accounts package for Meteor 1.2 and 1.3, using Drupal sessions transp
 [meteor module]: https://github.com/FGM/meteor
 [meteor sandbox]: https://www.drupal.org/sandbox/rgarand/2020935
 [Drupal DDP]: https://www.drupal.org/sandbox/bfodeke/2354859
+
+If you are using Meteor 1.3.3 or a more recent version, you need to disable update buffering on the client, or the client will never receive notifications from the server, like this:
+
+    Meteor.startup(function () {
+      Meteor.connection._bufferedWritesInterval = 0;
+    });
+
 
 # Running a demo
 # Configuring the package
