@@ -1,6 +1,6 @@
 # Accounts-drupal
 
-This is an accounts package for Meteor 1.2 and 1.3, using Drupal sessions transparently:
+This is an accounts package for Meteor 1.2 to 1.4, using Drupal sessions transparently:
 
 - The Meteor app is configured to use a specific Drupal server for sessions
 - Any user with a session on the Drupal server is automatically logged in on Meteor, without any UI-level intervention
