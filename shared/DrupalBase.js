@@ -49,7 +49,7 @@ DrupalBase = class DrupalBase {
       anonymousName: "anome",
       cookieName: "SESS___4___8__12__16__20__24__28__32",
       // Online is only set once the initialization has completed.
-      online: "construction"
+      // online: false
     };
 
     if (meteor.isClient) {
@@ -111,7 +111,7 @@ DrupalBase = class DrupalBase {
   /**
    * Abstract base method for "accounts-drupal:initState".
    *
-   * @returns {void}
+   * @returns {Object}
    */
   initStateMethod() {
     throw new Meteor.Error("abstract-method", "initStateMethod is abstract: use a concrete implementation instead.");
