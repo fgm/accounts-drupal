@@ -46,8 +46,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
     });
 
     if (this.isAutologinEnabled()) {
-      this.stream.on(this.EVENT_NAME, () => {
-        this.logger.info("Automatic login status update.");
+      this.stream.on(this.EVENT_NAME, (changeType, docs) => {
+        this.logger.info("Automatic login status update.", { changeType, docs });
         this.login(document.cookie);
       });
     }

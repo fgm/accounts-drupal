@@ -115,10 +115,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
   /**
    * Emit a SSO event on the SSO stream.
    *
+   * @param {String} changeType
+   *   The type of DB change: added or changed.
+   * @param {Array} docs
+   *   The array of affected documents.
+   *
    * @returns {void}
    */
-  emit() {
-    this.stream.emit(this.EVENT_NAME);
+  emit(changeType, docs) {
+    this.stream.emit(this.EVENT_NAME, changeType, docs);
   }
 
   /**
@@ -389,6 +394,21 @@ DrupalServer = class DrupalServer extends DrupalBase {
   }
 
   /**
+   * Handle collection change events.
+   *
+   * @param {String} changeType
+   *   The change type: added, changed.
+   * @param {Array} docs
+   *   An array of affected documents.
+   *
+   * @returns {void}
+   */
+  observe(changeType, docs) {
+    console.log(changeType, docs);
+    this.emit(changeType, docs);
+  }
+
+  /**
    * Set up the updates notification mechanism.
    *
    * - Initialize the TTL index on the package updates collection
@@ -399,8 +419,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
   setupUpdatesObserver() {
     this.collection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
     this.collection.find({}).observe({
-      added: () => this.emit(),
-      changed: () => this.emit()
+      added: (docs) => { this.observe('added', docs); },
+      changed: (docs) => { this.observe('changed', docs); },
     });
   }
 
@@ -417,6 +437,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - {int} delay: the delay to wait before inserting the event, in msec.
    *
    * @returns {void}
+   *
+   * @see \Drupal\meteor\IdentityListener::__destruct()
    */
   storeUpdateRequest(rawQuery) {
     const DEFAULT_DELAY = 1000;
@@ -432,8 +454,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
       : 0;
 
     const validEvents = [
+      // Drupal 8 user hooks.
       "user_delete", "user_login", "user_logout", "user_update",
+
+      // Drupal 8 field hooks.
       "field_delete", "field_insert", "field_update",
+
+      // A synthetic event for all entity_type and field_storage events
+      // caught by the IdentityListener instead of the hooks.
       "entity_field_update"
     ];
 
