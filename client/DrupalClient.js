@@ -45,12 +45,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
       this.state = res;
     });
 
-    if (this.isAutologinEnabled()) {
-      this.stream.on(this.EVENT_NAME, (changeType, docs) => {
-        this.logger.info("Automatic login status update.", { changeType, docs });
-        this.login(document.cookie);
-      });
-    }
+    this.stream.on(this.EVENT_NAME, (event, userId) => {
+      this.logger.info("Automatic login status update: " + event + "(" + userId + ")");
+      this.login(document.cookie);
+    });
 
     this.registerHelpers();
   }
@@ -136,23 +134,14 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.accounts.callLoginMethod({
       methodArguments,
       userCallback: (err, res) => {
-        let reArm;
         if (err) {
           this.logger.warn(Object.assign(logArg, { message: "Not logged-in on Drupal." }));
           this.logout();
-          reArm = false;
         }
         else {
           this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
-          reArm = true;
         }
         // With auto-login enabled, listening is constant, so do not arm once.
-        if (!this.isAutologinEnabled() && reArm) {
-          this.stream.once(this.EVENT_NAME, () => {
-            this.logger.info("Updating logged-in user.");
-            this.login(document.cookie);
-          });
-        }
         if (_.isFunction(callback)) {
           callback(err, res);
         }

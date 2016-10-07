@@ -18,7 +18,7 @@ function mockSettings(serviceName) {
 
 Tinytest.add("Testing correct configuration", function (test) {
   const settings = mockSettings(SERVICE_NAME);
-  settings.public[SERVICE_NAME].autoLogin = true;
+  settings.public[SERVICE_NAME] = {};
 
   let f = new DrupalConfiguration(SERVICE_NAME, settings, Log, ServiceConfiguration);
 
@@ -47,8 +47,9 @@ Tinytest.add("Testing incorrect configuration", function (test) {
   });
 
   // Non-boolean autoLogin.
-  settings = { public: {} };
-  settings.public[SERVICE_NAME] = { autoLogin: 69 };
+  settings[SERVICE_NAME] = {};
+  settings.public = {};
+  settings.public[SERVICE_NAME] = { autoLogin: true };
   instantiation = function () {
     return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
   };
@@ -58,6 +59,7 @@ Tinytest.add("Testing incorrect configuration", function (test) {
 
   // Missing ConfigError method on configuration service.
   settings[SERVICE_NAME] = {};
+  settings.public = {};
   instantiation = function () {
     return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
   };

@@ -29,7 +29,11 @@ DrupalConfiguration = class DrupalConfiguration {
     this.logger = logger;
 
     if (_.isEmpty(settings)) {
-      throw new Meteor.Error("drupal-configuration", `Settings are empty.`);
+      throw new Meteor.Error("drupal-configuration", "Settings are empty.");
+    }
+
+    if (settings.public && settings.public[name] && typeof settings.public[name].autoLogin !== "undefined") {
+      throw new Meteor.Error("drupal-configuration", "Settings contain obsolete autoLogin field.");
     }
 
     const serverSettings = settings[this.service];
