@@ -1,0 +1,94 @@
+digraph login {
+	rankdir = TB;
+	ratio = 0.5625; // 16/9.
+
+	// States
+	node [ shape="circle" ];
+	idle_anon	[ label="Idle\nAnon", shape="doublecircle" ];
+	idle_anon_t	[ label="Idle\nAnon\n(transient)" ];
+	idle_logged	[ label="Idle\nlogged" ];
+	idle_logged_t	[ label="Idle\nlogged\n(transient)" ];
+	on_anon		[ label="On\nAnon" ];
+	on_logged	[ label="On\nlogged" ];
+	once_anon	[ label="Once\nAnon" ];
+	once_logged	[ label="Once\nlogged" ];
+
+
+	// Decisions
+	node [ shape="diamond" ];
+	al_idle_anon			[ label="Autologin ?" ];
+	al_on_anon_login		[ label="Autologin ?" ];
+	cookies_idle_anon		[ label="Cookies ?" ];
+	cookies_idle_logged		[ label="Cookies ?" ];
+	cookies_on_anon 		[ label="Cookies ?" ];
+	cookies_on_logged		[ label="Cookies ?" ];
+	cookies_once_anon		[ label="Cookies ?" ];
+	cookies_once_logged		[ label="Cookies ?" ];
+	login_method_idle_anon		[ label="Login success ?"];
+	login_method_idle_logged	[ label="Login success ?"];
+	login_method_on_anon		[ label="Login success ?" ];
+	login_method_on_logged		[ label="Login success ?" ];
+	login_method_once_anon		[ label="Login success ?" ];
+
+	node [ shape="rect", color=red ];
+
+	// Edges
+	idle_anon -> cookies_idle_anon		[ label="Login" ];
+	idle_anon -> idle_anon			[ label="Logout" ];
+	idle_anon -> al_idle_anon		[ label="New" ];
+
+	idle_anon_t -> cookies_idle_anon;
+
+	idle_logged -> cookies_idle_logged	[ label="Login" ];
+	idle_logged -> idle_anon		[ label="Logout" ];
+
+	idle_logged_t -> cookies_idle_logged;
+
+	on_anon -> cookies_on_anon		[ label="Login" ];
+	on_anon -> on_anon			[ label="Logout" ];
+	on_anon -> cookies_on_anon		[ label="Refresh" ];
+
+	on_logged -> cookies_on_logged		[ label="Login" ];
+	on_logged -> on_anon			[ label="Logout" ];
+	on_logged -> cookies_on_logged		[ label="Refresh" ];
+
+	once_anon -> cookies_once_anon		[ label="Login" ];
+	once_anon -> once_anon			[ label="Logout" ];
+	once_anon -> idle_anon_t		[ label="Refresh" ];
+
+	once_logged -> cookies_once_logged	[ label="Login" ];
+	once_logged -> once_anon		[ label="Logout" ];
+	once_logged -> idle_logged_t		[ label="Refresh" ];
+
+	// Success
+	edge [ label="Y" ];
+	al_idle_anon -> on_anon;
+	al_on_anon_login -> on_logged		[ label="Y: callback" ];
+	cookies_idle_anon -> login_method_idle_anon;
+	cookies_idle_logged -> login_method_idle_logged;
+	cookies_on_anon -> login_method_on_anon;
+	cookies_once_anon -> login_method_once_anon;
+	cookies_on_logged -> login_method_on_logged;
+	login_method_idle_anon -> idle_logged	[ label="Y: callback" ];
+	login_method_idle_logged -> idle_logged	[ label="Y: callback" ];
+	login_method_on_anon -> al_on_anon_login;
+	login_method_on_logged -> on_logged	[ label="Y: callback" ];
+	login_method_once_anon -> once_logged	[ label="Y: callback" ];
+
+	// Failure
+	edge [ label="N" ];
+	al_idle_anon -> idle_anon;
+	al_on_anon_login -> once_logged		[ label="N: callback\nshould not happen" ];
+	cookies_idle_anon -> idle_anon		[ label="N: Logout" ];
+	cookies_idle_logged -> idle_anon	[ label="N: Logout" ];
+	cookies_on_anon -> on_anon		[ label="N: Logout" ];
+	cookies_on_logged -> on_anon		[ label="N: Logout" ];
+	cookies_once_anon -> once_anon		[ label="N: Logout" ];
+	cookies_once_logged -> once_anon	[ label="N: Logout" ];
+	login_method_idle_anon -> idle_anon	[ label="N: Logout, callback" ];
+	login_method_idle_logged -> idle_anon	[ label="N: Logout, callback" ];
+	login_method_on_anon -> on_anon		[ label="N: Logout, callback" ];
+	login_method_on_logged -> on_anon	[ label="N: Logout, callback" ];
+	login_method_once_anon -> once_anon	[ label="N: Logout, callback" ];
+}
+

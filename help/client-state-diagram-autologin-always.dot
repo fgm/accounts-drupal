@@ -1,0 +1,41 @@
+digraph login {
+	rankdir = TB;
+	ratio = 0.5625; // 16/9.
+
+	// States
+	node [ shape="circle", style="solid" ];
+	idle_anon	[ label="Idle\nAnon", shape="doublecircle" ];
+	idle_logged	[ label="Idle\nLogged", shape="doublecircle", style="dotted" ];
+	on_anon		[ label="On\nAnon" ];
+	on_logged	[ label="On\nlogged" ];
+
+	// Decisions
+	node [ shape="diamond" ];
+	cookies 		[ label="Cookies ?" ];
+	login_method		[ label="Login success ?"];
+
+	node [ shape="rect", color=red ];
+
+
+	// Edges
+	edge [ color=blue ];
+	idle_anon -> cookies			[ label="New: auto-login" ];
+	on_anon -> cookies			[ label="Login | Refresh" ];
+	on_anon -> on_anon			[ label="Logout" ];
+	on_anon -> idle_anon			[ label="Delete" ];
+	on_logged -> cookies			[ label="Login | Refresh" ];
+	on_logged -> on_anon			[ label="Logout" ];
+	on_logged -> idle_logged		[ label="Delete" ];
+
+	// Success
+	edge [ label="Y", color=green ];
+	cookies -> login_method;
+	login_method -> on_logged		[ label="Y: callback" ];
+
+	// Failure
+	edge [ label="N", color=red ];
+	cookies -> on_anon;
+	login_method -> on_anon		[ label="N: callback" ];
+
+}
+
