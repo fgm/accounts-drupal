@@ -31,7 +31,7 @@ digraph login {
 	on_anon -> cookies			[ label="Login | Refresh\nclientStartup" ];
 	on_anon -> on_anon			[ label="Logout" ];
 	on_anon -> idle_anon			[ label="Delete" ];
-	on_logged -> cookies			[ label="Login | Refresh" ];
+	on_logged -> cookies			[ label="Login | Refresh\nbackgroundLogin" ];
 	on_logged -> on_anon			[ label="Logout" ];
 	on_logged -> idle_logged		[ label="Delete" ];
 

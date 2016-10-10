@@ -124,7 +124,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   emit(action, userId = 0) {
-    console.log("emitting", action, userId);
     this.logger.debug("emitting", action, userId);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
@@ -512,7 +511,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
         event,
         userId
       });
-      console.log(delay, event, userId);
       return;
     }
     const update = {

@@ -32,7 +32,29 @@ DrupalClient = class DrupalClient extends DrupalBase {
   constructor(accounts, meteor, logger, match, stream, template) {
     super(accounts, meteor, logger, match, stream);
     this.call = (...args) => (meteor.call(...args));
+
     /**
+     * The result of a this.setInterval() call.
+     * @type {Any}
+     */
+    this.backgroundLoginInterval = null;
+
+    /**
+     * @param {Any} id
+     */
+    this.clearInterval = meteor.clearInterval.bind(this);
+    /**
+     * The Meteor.setInterval() function, bound to this.
+     *
+     * @param {Function} func
+     * @param {Number} delay
+     *
+     * @return {Any} id
+     */
+    this.setInterval = meteor.setInterval.bind(this);
+    /**
+     * The Meteor.setTimeout() function, bound to this.
+     *
      * @param {Function} func
      * @param {Number} delay
      */
@@ -51,8 +73,24 @@ DrupalClient = class DrupalClient extends DrupalBase {
     });
 
     this.stream.on(this.EVENT_NAME, this.onRefresh.bind(this));
-
     this.registerHelpers();
+  }
+
+  /**
+   * Enable the background login check if it is not already active.
+   *
+   * Do nothing if it is already active.
+   *
+   * @return {void}
+   */
+  backgroundLoginEnable() {
+    if (!this.backgroundLoginInterval) {
+      // Value of this setting was validated in server-side DrupalConfiguration.
+      const backgroundLogin = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
+      this.backgroundLoginInterval = this.setInterval(() => {
+        this.onBackgroundLogin();
+      }, backgroundLogin);
+    }
   }
 
   /**
@@ -118,6 +156,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @return {void}
    */
   login(cookie, callback = null) {
+    console.log("Login", cookie);
     let logArg = { app: this.SERVICE_NAME };
     const cookies = this.cookies(cookie);
 
@@ -155,6 +194,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
           this.logout();
         }
         else {
+          this.backgroundLoginEnable();
           this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
         }
         if (_.isFunction(callback)) {
@@ -179,6 +219,23 @@ DrupalClient = class DrupalClient extends DrupalBase {
   initStateMethod() {
     this.logger.debug("Client stub for initStateMethod, doing nothing.");
     return this.getDefaultUser();
+  }
+
+  /**
+   * Perform a login check only for an authenticated user.
+   *
+   * If invoked for an anonymous user, disable the background process.
+   *
+   * @return {void}
+   */
+  onBackgroundLogin() {
+    this.logger.debug('Background login check');
+    if (this.user()) {
+      this.login(document.cookie);
+    }
+    else if (typeof this.backgroundLoginInterval !== 'undefined') {
+      this.clearInterval(this.backgroundLoginInterval);
+    }
   }
 
   onRefresh(event, userId) {

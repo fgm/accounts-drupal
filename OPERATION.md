@@ -19,22 +19,19 @@ events notified by the [Meteor module] for Drupal 8.
 Operation "deferred login" performs a login after a pseudo-random timeout in a
 configurable range, to avoid storming the server with login attempts.
 
+During logged-in operation, background whoami checks are run for each user at a
+pseudo-random interval (constant +/- pseudo-random variant). If the whoami checks
+returns a change from the current account, a login is attempted, otherwise nothing
+happens. This enables the package no longer to handle broacasted system-level 
+events (`[entity_]field_*`).
+
 Event \ User state  | Server                    | Anon           | X              | Y              |
 --------------------|:-------------------------:|:--------------:|:--------------:|:--------------:|
 user_delete(X)      | delete(X)                 | not notified   | → logged out   | not notified   |
 user_login(X)       | emit('anonymous')         | deferred login | ignored        | ignored        |
 user_logout(X)      | delete(X)                 | not notified   | → logged out   | not notified   |
 user_update(X)      | emit('userId', userId)    | ignored        | login          | ignored        |
-field_delete        | emit('authenticated')     | ignored        | deferred login | deferred login |
-field_insert        | emit('authenticated')     | ignored        | deferred login | deferred login |
-field_update        | emit('authenticated')     | ignored        | deferred login | deferred login |
-entity_field_update | emit('authenticated')     | ignored        | deferred login | deferred login |
-
-### Planned change
-
-- During logged-in operation, background whoami checks are run for each user at a
-pseudo-random interval (constant +/- pseudo-random variant). If the whoami checks
-returns a change from the current account, a login is attempted, otherwise nothing
-happens.
-- This enables the package no longer needs to handle broacasted system-level 
-  events (`[entity_]field_*`).
+field_delete        | ignored                   | not notified   | not notified   | not notified   | 
+field_insert        | ignored                   | not notified   | not notified   | not notified   |
+field_update        | ignored                   | not notified   | not notified   | not notified   |
+entity_field_update | ignored                   | not notified   | not notified   | not notified   |
