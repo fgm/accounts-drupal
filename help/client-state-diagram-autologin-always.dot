@@ -10,17 +10,25 @@ digraph login {
 	on_logged	[ label="On\nlogged" ];
 
 	// Decisions
-	node [ shape="diamond" ];
-	cookies 		[ label="Cookies ?" ];
+	node            [ shape="diamond" ];
+	cookies 		    [ label="Cookies ?" ];
 	login_method		[ label="Login success ?"];
 
 	node [ shape="rect", color=red ];
 
+  subgraph cluster_login {
+    color = lightgray;
+    fontsize = 8;
+    label = "DrupalClient.login()"
+
+    cookies;
+    login_method;
+  }
 
 	// Edges
-	edge [ color=blue ];
-	idle_anon -> cookies			[ label="New: auto-login" ];
-	on_anon -> cookies			[ label="Login | Refresh" ];
+	edge [ color=blue, fontsize= 8 ];
+	idle_anon -> on_anon		[ label="clientBoot:\nnew DrupalClient()" ];
+	on_anon -> cookies			[ label="Login | Refresh\nclientStartup" ];
 	on_anon -> on_anon			[ label="Logout" ];
 	on_anon -> idle_anon			[ label="Delete" ];
 	on_logged -> cookies			[ label="Login | Refresh" ];
@@ -33,9 +41,9 @@ digraph login {
 	login_method -> on_logged		[ label="Y: callback" ];
 
 	// Failure
-	edge [ label="N", color=red ];
+	edge [ label="N: callback", color=red ];
 	cookies -> on_anon;
-	login_method -> on_anon		[ label="N: callback" ];
+	login_method -> on_anon;
 
 }
 

@@ -19,17 +19,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   The AccountsServer service.
    * @param {Meteor} meteor
    *   The Meteor global.
-   * @param {Collection} Collection
-   *   The Mongo.Collection service
    * @param {Log} logger
    *   the Meteor Log service.
-   * @param {Match} match
+   * @param {IMatch} match
    *   The Meteor check matcher service.
    * @param {Streamer} stream
    *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.
-   * @param {HTTP} http
+   * @param {IHTTP} http
    *   The HTTP service.
    * @param {JSON} json
    *   The JSON service.
@@ -37,7 +35,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, Collection, logger, match, stream, configuration, http, json) {
+  constructor(accounts, meteor, logger, match, stream, configuration, http, json) {
     super(accounts, meteor, logger, match, stream);
     this.updatesCollection = this.getCollection(meteor);
     this.usersCollection = meteor.users;
@@ -126,6 +124,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   emit(action, userId = 0) {
+    console.log("emitting", action, userId);
     this.logger.debug("emitting", action, userId);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
@@ -507,12 +506,13 @@ DrupalServer = class DrupalServer extends DrupalBase {
       "entity_field_update"
     ];
 
-    if (validEvents.indexOf(query.event) === -1 || !userId) {
+    if (validEvents.indexOf(query.event) === -1) {
       this.logger.warn("Invalid update request, ignored.", {
         delay,
         event,
         userId
       });
+      console.log(delay, event, userId);
       return;
     }
     const update = {
@@ -539,7 +539,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   userDelete(rawUserId) {
     const userId = parseInt(rawUserId, 10);
-    this.logger.info('User ' + userId + ' was deleted.');
+    this.logger.info(`User ${userId} was deleted.`);
     this.usersCollection.remove({
       "services.accounts-drupal.public.uid": userId
     });

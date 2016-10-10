@@ -19,12 +19,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @param {Meteor} meteor
    *   The Meteor global.
    * @param {Log} logger
-   *   The Meteor Log service.
-   * @param {Match} match
+   *   A Meteor logger service.
+   * @param {IMatch} match
    *   The Meteor check matcher service.
    * @param {Streamer} stream
    *   The stream used by the package.
-   * @param {Template} template
+   * @param {ITemplate} template
    *   The Meteor Template service.
    *
    * @constructor
@@ -90,16 +90,6 @@ DrupalClient = class DrupalClient extends DrupalBase {
   }
 
   /**
-   * Is the auto-login feature enabled in settings.json ?
-   *
-   * @returns {boolean}
-   *   True if it is truthy, false otherwise.
-   */
-  isAutologinEnabled() {
-    return !!this.settings.client.autoLogin;
-  }
-
-  /**
    * The method to use to perform login.
    *
    * @param {String} cookie
@@ -114,17 +104,23 @@ DrupalClient = class DrupalClient extends DrupalBase {
     const cookies = this.cookies(cookie);
 
     if (_.isEmpty(cookies)) {
+      let message;
       if (this.accounts.userId()) {
-        this.logger.info("No cookie found: logging out.");
+        message = "No cookie found: logging out.";
+        this.logger.info(message);
         this.logout();
       }
       else {
-        this.logger.warn(Object.assign(logArg, { message: "No cookie found, not trying to login." }));
+        message = "No cookie found, not trying to login.";
+        this.logger.warn(Object.assign(logArg, { message }));
+      }
+      if (_.isFunction(callback)) {
+        callback(new Meteor.Error(message));
       }
       return;
     }
-    let methodArgument = {};
 
+    let methodArgument = {};
     methodArgument[this.SERVICE_NAME] = cookies;
 
     // Other available arguments:
@@ -133,6 +129,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
     let methodArguments = [methodArgument];
     this.accounts.callLoginMethod({
       methodArguments,
+      // Spurious ESLint complaint about unused property: it does not detect use
+      // because it happens in a loop. Do NOT remove that property.
       userCallback: (err, res) => {
         if (err) {
           this.logger.warn(Object.assign(logArg, { message: "Not logged-in on Drupal." }));
@@ -141,7 +139,6 @@ DrupalClient = class DrupalClient extends DrupalBase {
         else {
           this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
         }
-        // With auto-login enabled, listening is constant, so do not arm once.
         if (_.isFunction(callback)) {
           callback(err, res);
         }
@@ -158,11 +155,19 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.accounts.logout();
   }
 
+  /**
+   * @inheritDoc
+   */
   initStateMethod() {
-    Log.info("Client stub for initStateMethod, doing nothing.");
+    this.logger.debug("Client stub for initStateMethod, doing nothing.");
     return this.getDefaultUser();
   }
 
+  /**
+   * Register template helpers for Blaze.
+   *
+   * @returns {void}
+   */
   registerHelpers() {
     const helpers = [
       { name: "accountsDrupalUserId", code: () => client.uid },
@@ -174,20 +179,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
   }
 
   /**
-   * Call the Drupal whoami service.
-   *
-   * @param {String} cookieName
-   *   The cookie name.
-   * @param {String} cookieValue
-   *   The cookie value.
-   *
-   * @returns {Object}
-   *   - uid: a Drupal user id, 0 if not logged on Drupal
-   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
-   *   - roles: an array of role names, possibly empty.
+   * @inheritDoc
    */
   whoamiMethod(cookieName, cookieValue) {
-    this.logger.info(`Client stub for whoamiMehod(${cookieName}, ${cookieValue}), returning default user.`);
+    this.logger.info(`Client stub for whoamiMethod(${cookieName}, ${cookieValue}), returning default user.`);
     return this.getDefaultUser();
   }
 
@@ -208,4 +203,5 @@ DrupalClient = class DrupalClient extends DrupalBase {
     const roles = user ? this.user().profile[this.SERVICE_NAME].roles : ["anonymous user"];
     return roles;
   }
+
 };
