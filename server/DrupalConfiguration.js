@@ -29,14 +29,26 @@ DrupalConfiguration = class DrupalConfiguration {
     this.logger = logger;
 
     if (_.isEmpty(settings)) {
-      throw new Meteor.Error("drupal-configuration", `Settings are empty.`);
+      throw new Meteor.Error("drupal-configuration", "Settings are empty.");
+    }
+
+    if (settings.public && settings.public[name] && typeof settings.public[name].autoLogin !== "undefined") {
+      throw new Meteor.Error("drupal-configuration", "Settings contain obsolete autoLogin field.");
     }
 
     const serverSettings = settings[this.service];
     if (typeof serverSettings === "undefined") {
       throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name} root key.`);
     }
-    // const clientSettings = settings.public[this.service];
+
+    const clientSettings = settings.public[this.service];
+    if (typeof clientSettings === "undefined") {
+      throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name} public key.`);
+    }
+    let backgroundLogin = clientSettings.backgroundLogin;
+    if (typeof backgroundLogin === "undefined") {
+      throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name}/backgroundLogin public key.`);
+    }
 
     this.site = serverSettings.site || "http://d8.fibo.dev";
     this.appToken = serverSettings.appToken || "invalid-token";

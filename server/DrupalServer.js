@@ -19,17 +19,15 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   The AccountsServer service.
    * @param {Meteor} meteor
    *   The Meteor global.
-   * @param {Collection} Collection
-   *   The Mongo.Collection service
    * @param {Log} logger
    *   the Meteor Log service.
-   * @param {Match} match
+   * @param {IMatch} match
    *   The Meteor check matcher service.
    * @param {Streamer} stream
    *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
    *   The ServiceConfiguration service.
-   * @param {HTTP} http
+   * @param {IHTTP} http
    *   The HTTP service.
    * @param {JSON} json
    *   The JSON service.
@@ -37,9 +35,10 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, Collection, logger, match, stream, configuration, http, json) {
+  constructor(accounts, meteor, logger, match, stream, configuration, http, json) {
     super(accounts, meteor, logger, match, stream);
-    this.collection = new Collection(`${DrupalServer.SERVICE_NAME}_updates`);
+    this.updatesCollection = this.getCollection(meteor);
+    this.usersCollection = meteor.users;
     this.configuration = configuration;
     this.http = http;
     this.json = json;
@@ -115,10 +114,34 @@ DrupalServer = class DrupalServer extends DrupalBase {
   /**
    * Emit a SSO event on the SSO stream.
    *
+   *   The event details
+   *
+   * @param {String} action
+   *   The action to perform. Currently only valid value is "login".
+   * @param {Number} userId
+   *   The integer user id to filter on, or 0 for any user.
+   *
    * @returns {void}
    */
-  emit() {
-    this.stream.emit(this.EVENT_NAME);
+  emit(action, userId = 0) {
+    this.logger.debug("emitting", action, userId);
+    this.stream.emit(this.EVENT_NAME, action, userId);
+  }
+
+  /**
+   * Return the collection used for updates.
+   *
+   * @param {Meteor} meteor
+   *   The Meteor service
+   *
+   * @returns {Mongo.Collection|Meteor.Collection|*}
+   *   The updates collection.
+   */
+  getCollection(meteor) {
+    const rawName = `${DrupalServer.SERVICE_NAME}_updates`;
+    const name = rawName.replace("-", "_");
+    const collection = new meteor.Collection(name);
+    return collection;
   }
 
   /**
@@ -354,7 +377,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     const settingsOptions = this.settings.server.site_options;
     let options = Object.assign(defaultOptions, settingsOptions);
 
-    let info;
+    let info = {};
     try {
       let ret = this.http.get(site + "/meteor/siteInfo", options);
       info = this.json.parse(ret.content);
@@ -373,6 +396,59 @@ DrupalServer = class DrupalServer extends DrupalBase {
   }
 
   /**
+   * Handle collection change events.
+   *
+   * @param {String} changeType
+   *   The change type: added, changed.
+   * @param {Object} doc
+   *   An affected documents.
+   *
+   * @returns {void}
+   */
+  observe(changeType, doc) {
+    if (changeType !== "added") {
+      return;
+    }
+
+    switch (doc.event) {
+      case "user_delete":
+      case "user_logout":
+        // Affected clients will logout automatically, and will not be able to
+        // login again, so they do not need to be notified: any attempts at
+        // logging in because of auto-login would fail anyway.
+        this.userDelete(doc.userId);
+        break;
+
+      case "user_login":
+        // Any not-yet logged-in user may be able to login if the browser is the
+        // same as the one which just logged in. Logged-in users are not
+        // affected, since Drupal does not re-log logged-in users.
+        this.emit("anonymous");
+        break;
+
+      case "user_update":
+        // If a single user was modified, only connections logged-in as that
+        // user need to refresh their information.
+        this.emit("userId", doc.userId);
+        break;
+
+      case "field_delete":
+      case "field_insert":
+      case "field_update":
+      case "entity_field_update":
+        // These are structural changes, so any logged-in user needs to refresh
+        // its information. Non-logged-in users don't have any, so they are not
+        // affected.
+        this.emit("authenticated");
+        break;
+
+      default:
+        this.logger.warn("Observed unsupported event type " + doc.event);
+        break;
+    }
+  }
+
+  /**
    * Set up the updates notification mechanism.
    *
    * - Initialize the TTL index on the package updates collection
@@ -381,51 +457,90 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   setupUpdatesObserver() {
-    this.collection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
-    this.collection.find({}).observe({
-      added: () => this.emit(),
-      changed: () => this.emit()
+    this.updatesCollection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
+    this.updatesCollection.find({}).observe({
+      added: (docs) => { this.observe("added", docs); },
+      changed: (docs) => { this.observe("changed", docs); }
     });
   }
 
   /**
    * Store a user update request to the DB.
    *
-   * @param {Object} query
+   * @param {Object} rawQuery
    *   Used keys:
-   *   - {int} userId
-   *   - {string} eventName
-   *     - login
-   *     - logout
-   *     - update
-   *     - delete
-   *  A "delay" key is present but is only for information: it is expected to
-   *  have been used by the route controller, not to be used to add an extra
-   *  delay while storing the update.
+   *   - {int} userId: the Drupal user id
+   *   - {string} eventName: the name of the event
+   *     - "user_delete", "user_login", "user_logout", "user_update",
+   *     - "field_delete", "field_insert", "field_update",
+   *     - "entity_field_update"
+   *   - {int} delay: the delay to wait before inserting the event, in msec.
    *
    * @returns {void}
+   *
+   * @see \Drupal\meteor\IdentityListener::__destruct()
    */
-  storeUpdateRequest(query) {
-    const delay = parseInt(query.delay, 10) || 0;
-    const userId = parseInt(query.userId, 10) || 0;
-    const validOps = ["delete", "login", "logout", "update"];
+  storeUpdateRequest(rawQuery) {
+    const DEFAULT_DELAY = 1000;
 
-    if (validOps.indexOf(query.op) === -1 || !userId) {
+    const query = rawQuery || {};
+    const event = String(query.event);
+    const userId = parseInt(query.userId, 10) || 0;
+
+    // If there is any kind of delay ensure it is a strictly positive integer.
+    let usDelay = query.delay;
+    const delay = (typeof usDelay !== "undefined")
+      ? parseInt(usDelay, 10) || DEFAULT_DELAY
+      : 0;
+
+    const validEvents = [
+      // Drupal 8 user hooks.
+      "user_delete", "user_login", "user_logout", "user_update",
+
+      // Drupal 8 field hooks.
+      "field_delete", "field_insert", "field_update",
+
+      // A synthetic event for all entity_type and field_storage events
+      // caught by the IdentityListener instead of the hooks.
+      "entity_field_update"
+    ];
+
+    if (validEvents.indexOf(query.event) === -1) {
       this.logger.warn("Invalid update request, ignored.", {
         delay,
-        op: query.op,
-        userId: query.userId
+        event,
+        userId
       });
       return;
     }
     const update = {
       createdAt: new Date(),
       delay,
-      op: query.op,
+      event,
       userId
     };
     this.logger.debug("Storing update", update);
-    this.collection.insert(update);
+    // Always use a timeout: it will be 0.
+    Meteor.setTimeout(() => {
+      update.insertedAt = new Date();
+      this.updatesCollection.insert(update);
+    }, delay);
+  }
+
+  /**
+   * Delete user by id.
+   *
+   * @param {Number} rawUserId
+   *   The Drupal uid for the user.
+   *
+   * @returns {void}
+   */
+  userDelete(rawUserId) {
+    const userId = parseInt(rawUserId, 10);
+    this.logger.info(`User ${userId} was deleted.`);
+    this.usersCollection.remove({
+      "services.accounts-drupal.public.uid": userId
+    });
   }
 
   /**
@@ -462,6 +577,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       let ret = this.http.get(url, options);
       t1 = +new Date();
       info = this.json.parse(ret.content);
+      info.uid = parseInt(info.uid, 10);
       this.logger.info(`Success: ${t1 - t0} msec later: ${this.json.stringify(info)}.`);
     }
     catch (err) {

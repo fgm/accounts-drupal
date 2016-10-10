@@ -6,8 +6,8 @@ Log.debug("Server boot");
 
 try {
   // Configure stream to allow anyone to read.
-  stream.allowRead('all');
-  stream.allowWrite('none');
+  stream.allowRead("all");
+  stream.allowWrite("none");
 
   // Configure Authentifier.
   let drupalConfiguration = new DrupalConfiguration(DrupalBase.SERVICE_NAME, Meteor.settings, Log, ServiceConfiguration);
@@ -16,7 +16,7 @@ try {
   // Server is package-global, but not exported.
   server = new DrupalServer(
     // Upstream services.
-    Accounts, Meteor, Mongo.Collection, Log, Match,
+    Accounts, Meteor, Log, Match,
     // Package global.
     stream,
     // Package services.

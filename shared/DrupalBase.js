@@ -47,9 +47,8 @@ DrupalBase = class DrupalBase {
 
     this.state = {
       anonymousName: "anome",
-      cookieName: "SESS___4___8__12__16__20__24__28__32",
-      // Online is only set once the initialization has completed.
-      online: "construction"
+      cookieName: "SESS___4___8__12__16__20__24__28__32"
+      // "online "is only set once the initialization has completed.
     };
 
     if (meteor.isClient) {
@@ -111,9 +110,16 @@ DrupalBase = class DrupalBase {
   /**
    * Abstract base method for "accounts-drupal:initState".
    *
-   * @returns {void}
+   * @param {Boolean} refresh
+   *   On server, perform a Drupal WS call if true, otherwise use the instance
+   *   information. Ignored on client.
+   *
+   * @returns {Object}
+   *   - cookieName: the name of the session cookie used by the site.
+   *   - anonymousName: the name of the anonymous user to use when not logged in.
+   *   - online: site was available at last check.
    */
-  initStateMethod() {
+  initStateMethod(refresh = false) {
     throw new Meteor.Error("abstract-method", "initStateMethod is abstract: use a concrete implementation instead.");
   }
 

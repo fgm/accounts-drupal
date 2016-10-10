@@ -5,14 +5,11 @@
 
 Meteor.startup(() => {
   Log.debug("Client startup");
-  if (client.isAutologinEnabled()) {
-    if (document.cookie) {
-      Log.info("Cookies exist, attempting Drupal login");
-    }
+
+  if (document.cookie) {
+    Log.info("Cookies exist, attempting Drupal login");
     // Attempt login if a cookie exists, logout otherwise.
+    // XXX Consider taking a callback from the application here.
     client.login(document.cookie);
-  }
-  else {
-    Log.info("Auto-login not enabled in settings.");
   }
 });

@@ -17,7 +17,7 @@
   "public": {
     "accounts-drupal": {
       "//": "Fields below public are visible on the client side:",
-      "autoLogin": true
+      "backgroundLogin": 300
     }
   }
 }

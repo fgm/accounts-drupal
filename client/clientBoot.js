@@ -13,8 +13,11 @@ client = new DrupalClient(Accounts, Meteor, Log, Match, stream, Template);
 /**
  * Need to wrap client.login in a closure to avoid overwriting this in login().
  *
+ * @param {function} callback
+ *   Optional. A callback to be called at the end of login, with (err, res).
+ *
  * @return {void}
  */
-Meteor.loginWithDrupal = function () {
-  client.login(document.cookie);
+Meteor.loginWithDrupal = function (callback) {
+  client.login(document.cookie, callback);
 };

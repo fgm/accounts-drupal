@@ -40,7 +40,7 @@ Package.onUse(function (api) {
 
   api.use(coreDependencies);
 
-  api.use('rocketchat:streamer@0.5.0');
+  api.use("rocketchat:streamer@0.5.0");
 
   const sharedPre = [
     "DrupalBase",
