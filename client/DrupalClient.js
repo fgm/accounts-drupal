@@ -32,6 +32,11 @@ DrupalClient = class DrupalClient extends DrupalBase {
   constructor(accounts, meteor, logger, match, stream, template) {
     super(accounts, meteor, logger, match, stream);
     this.call = (...args) => (meteor.call(...args));
+    /**
+     * @param {Function} func
+     * @param {Number} delay
+     */
+    this.setTimeout = meteor.setTimeout.bind(this);
     this.template = template;
     this.user = meteor.user.bind(this);
 
@@ -45,10 +50,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
       this.state = res;
     });
 
-    this.stream.on(this.EVENT_NAME, (event, userId) => {
-      this.logger.info("Automatic login status update: " + event + "(" + userId + ")");
-      this.login(document.cookie);
-    });
+    this.stream.on(this.EVENT_NAME, this.onRefresh.bind(this));
 
     this.registerHelpers();
   }
@@ -79,6 +81,22 @@ DrupalClient = class DrupalClient extends DrupalBase {
       }
     });
     return result;
+  }
+
+  /**
+   * Attempt login after a pseudo-random delay.
+   *
+   * @return {void}
+   */
+  deferredLogin() {
+    // TODO use settings and/or an automatic retry with exponential backoff.
+    const min = 1000;
+    const max = 5000;
+    const delay = Math.round(Math.random() * (max - min) + min);
+    this.logger.debug('Deferred login in ' + delay + " msec");
+    this.setTimeout(() => {
+      this.login(document.cookie);
+    }, delay);
   }
 
   getDefaultUser() {
@@ -163,6 +181,34 @@ DrupalClient = class DrupalClient extends DrupalBase {
     return this.getDefaultUser();
   }
 
+  onRefresh(event, userId) {
+    this.logger.info("Automatic login status update: " + event + "(" + userId + ")");
+    // this.login(document.cookie);
+    switch (event) {
+      case 'anonymous':
+        if (!this.user()) {
+          this.deferredLogin();
+        }
+        break;
+
+      case 'authenticated':
+        if (this.user()) {
+          this.deferredLogin();
+        }
+        break;
+
+      case 'userId':
+        if (this.uid === userId) {
+          this.login(document.cookie);
+        }
+        break;
+
+      default:
+        this.logger.info(`Received unknown event ${event}(${userId}): ignored`);
+        break;
+    }
+  }
+
   /**
    * Register template helpers for Blaze.
    *
@@ -188,7 +234,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
 
   get uid() {
     const user = this.user();
-    const uid = user ? user.profile[client.SERVICE_NAME].uid : 0;
+    const uid = user ? parseInt(user.profile[client.SERVICE_NAME].uid, 10) : 0;
     return uid;
   }
 

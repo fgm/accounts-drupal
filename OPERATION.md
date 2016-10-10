@@ -22,19 +22,19 @@ configurable range, to avoid storming the server with login attempts.
 Event \ User state  | Server                    | Anon           | X              | Y              |
 --------------------|:-------------------------:|:--------------:|:--------------:|:--------------:|
 user_delete(X)      | delete(X)                 | not notified   | → logged out   | not notified   |
-user_login(X)       | emit('anonymous')         | deferred login | not notified   | not notified   |
+user_login(X)       | emit('anonymous')         | deferred login | ignored        | ignored        |
 user_logout(X)      | delete(X)                 | not notified   | → logged out   | not notified   |
-user_update(X)      | emit('userId', userId)    | not notified   | login          | not notified   |
-field_delete        | emit('authenticated')     | not notified   | deferred login | deferred login |
-field_insert        | emit('authenticated')     | not notified   | deferred login | deferred login |
-field_update        | emit('authenticated')     | not notified   | deferred login | deferred login |
-entity_field_update | emit('authenticated')     | not notified   | deferred login | deferred login |
+user_update(X)      | emit('userId', userId)    | ignored        | login          | ignored        |
+field_delete        | emit('authenticated')     | ignored        | deferred login | deferred login |
+field_insert        | emit('authenticated')     | ignored        | deferred login | deferred login |
+field_update        | emit('authenticated')     | ignored        | deferred login | deferred login |
+entity_field_update | emit('authenticated')     | ignored        | deferred login | deferred login |
 
-Planned change:
+### Planned change
 
 - During logged-in operation, background whoami checks are run for each user at a
 pseudo-random interval (constant +/- pseudo-random variant). If the whoami checks
 returns a change from the current account, a login is attempted, otherwise nothing
 happens.
-- This enables the package no longer to handle broacasted system-level events 
-  (`[entity_]field_*`) and only handle the non-broadcast events, to reduce load.
+- This enables the package no longer needs to handle broacasted system-level 
+  events (`[entity_]field_*`).
