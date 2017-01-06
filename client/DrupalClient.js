@@ -156,7 +156,6 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @return {void}
    */
   login(cookie, callback = null) {
-    console.log("Login", cookie);
     let logArg = { app: this.SERVICE_NAME };
     const cookies = this.cookies(cookie);
 

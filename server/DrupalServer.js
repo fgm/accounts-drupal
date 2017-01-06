@@ -56,7 +56,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       logger.debug("Retrieved Drupal site information.");
     }
     else {
-      throw new meteor.Error("init-state", "Could not reach Drupal server.");
+      throw new meteor.Error("init-state", `Could not reach Drupal server at ${this.settings.server.site}.`);
     }
   }
 
