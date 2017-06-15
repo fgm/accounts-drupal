@@ -3,7 +3,7 @@
  *   The configuration of accounts-drupal.
  */
 
-Log.debug("Defining server/DrupalConfiguration");
+Log.debug('Defining server/DrupalConfiguration');
 
 /**
  * Configure the service from its settings.
@@ -29,39 +29,39 @@ DrupalConfiguration = class DrupalConfiguration {
     this.logger = logger;
 
     if (_.isEmpty(settings)) {
-      throw new Meteor.Error("drupal-configuration", "Settings are empty.");
+      throw new Meteor.Error('drupal-configuration', 'Settings are empty.');
     }
 
-    if (settings.public && settings.public[name] && typeof settings.public[name].autoLogin !== "undefined") {
-      throw new Meteor.Error("drupal-configuration", "Settings contain obsolete autoLogin field.");
+    if (settings.public && settings.public[name] && typeof settings.public[name].autoLogin !== 'undefined') {
+      throw new Meteor.Error('drupal-configuration', 'Settings contain obsolete autoLogin field.');
     }
 
     const serverSettings = settings[this.service];
-    if (typeof serverSettings === "undefined") {
-      throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name} root key.`);
+    if (typeof serverSettings === 'undefined') {
+      throw new Meteor.Error('drupal-configuration', `Settings are missing a ${name} root key.`);
     }
 
     const clientSettings = settings.public[this.service];
-    if (typeof clientSettings === "undefined") {
-      throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name} public key.`);
+    if (typeof clientSettings === 'undefined') {
+      throw new Meteor.Error('drupal-configuration', `Settings are missing a ${name} public key.`);
     }
     let backgroundLogin = clientSettings.backgroundLogin;
-    if (typeof backgroundLogin === "undefined") {
-      throw new Meteor.Error("drupal-configuration", `Settings are missing a ${name}/backgroundLogin public key.`);
+    if (typeof backgroundLogin === 'undefined') {
+      throw new Meteor.Error('drupal-configuration', `Settings are missing a ${name}/backgroundLogin public key.`);
     }
 
-    this.site = serverSettings.site || "http://d8.fibo.dev";
-    this.appToken = serverSettings.appToken || "invalid-token";
-    this.rootFields = serverSettings.rootFields || ["profile"];
+    this.site = serverSettings.site || 'http://d8.fibo.dev';
+    this.appToken = serverSettings.appToken || 'invalid-token';
+    this.rootFields = serverSettings.rootFields || ['profile'];
 
     this.configurations = serviceConfiguration.configurations;
 
-    if (!serviceConfiguration.ConfigError || serviceConfiguration.ConfigError.prototype.name !== "ServiceConfiguration.ConfigError") {
-      throw new Meteor.Error("drupal-configuration", "Invalid service-configuration: invalid ConfigError.");
+    if (!serviceConfiguration.ConfigError || serviceConfiguration.ConfigError.prototype.name !== 'ServiceConfiguration.ConfigError') {
+      throw new Meteor.Error('drupal-configuration', 'Invalid service-configuration: invalid ConfigError.');
     }
 
     // Ensure configurations looks usable.
-    if (!typeof this.configurations === "object" || _.isEmpty(this.configurations)) {
+    if (!typeof this.configurations === 'object' || _.isEmpty(this.configurations)) {
       throw new ServiceConfiguration.ConfigError(name);
     }
   }

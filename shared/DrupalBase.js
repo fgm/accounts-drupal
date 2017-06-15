@@ -3,7 +3,7 @@
  *   Contains the DrupalBase class.
  */
 
-Log.debug("Defining shared/DrupalBase");
+Log.debug('Defining shared/DrupalBase');
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -46,16 +46,16 @@ DrupalBase = class DrupalBase {
     this.settings = { client: {} };
 
     this.state = {
-      anonymousName: "anome",
-      cookieName: "SESS___4___8__12__16__20__24__28__32"
-      // "online "is only set once the initialization has completed.
+      anonymousName: 'anome',
+      cookieName: 'SESS___4___8__12__16__20__24__28__32'
+      // "online" is only set once the initialization has completed.
     };
 
     if (meteor.isClient) {
-      this.location = "client";
+      this.location = 'client';
     }
     else if (meteor.isServer) {
-      this.location = "server";
+      this.location = 'server';
     }
     else {
       // XXX What about Cordova ?
@@ -120,7 +120,7 @@ DrupalBase = class DrupalBase {
    *   - online: site was available at last check.
    */
   initStateMethod(refresh = false) {
-    throw new Meteor.Error("abstract-method", "initStateMethod is abstract: use a concrete implementation instead.");
+    throw new Meteor.Error('abstract-method', 'initStateMethod is abstract: use a concrete implementation instead.');
   }
 
   /**
@@ -137,7 +137,7 @@ DrupalBase = class DrupalBase {
    *   - roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
-    throw new Meteor.Error("abstract-method", `whoamiMehod(${cookieName}, ${cookieValue}) is abstract: use a concrete implementation instead.`);
+    throw new Meteor.Error('abstract-method', `whoamiMehod(${cookieName}, ${cookieValue}) is abstract: use a concrete implementation instead.`);
   }
 
   /**
@@ -151,7 +151,7 @@ DrupalBase = class DrupalBase {
    *   The stream name.
    */
   get STREAM_NAME() {
-    return "accounts-drupal:refresh";
+    return 'accounts-drupal:refresh';
   }
 
   /**
@@ -165,7 +165,7 @@ DrupalBase = class DrupalBase {
    *   The stream name.
    */
   static get STREAM_NAME() {
-    return "accounts-drupal:refresh";
+    return 'accounts-drupal:refresh';
   }
 
   /**
@@ -179,7 +179,7 @@ DrupalBase = class DrupalBase {
    *   The event name.
    */
   get EVENT_NAME() {
-    return "accounts-drupal:refresh:event";
+    return 'accounts-drupal:refresh:event';
   }
 
   /**
@@ -193,7 +193,7 @@ DrupalBase = class DrupalBase {
    *   The event name.
    */
   static get EVENT_NAME() {
-    return "accounts-drupal:refresh:event";
+    return 'accounts-drupal:refresh:event';
   }
 
   /**
@@ -207,7 +207,7 @@ DrupalBase = class DrupalBase {
    *   The service name.
    */
   get SERVICE_NAME() {
-    return "accounts-drupal";
+    return 'accounts-drupal';
   }
 
   /**
@@ -221,6 +221,6 @@ DrupalBase = class DrupalBase {
    *   The service name.
    */
   static get SERVICE_NAME() {
-    return "accounts-drupal";
+    return 'accounts-drupal';
   }
 };

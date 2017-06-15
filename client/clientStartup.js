@@ -4,7 +4,7 @@
  */
 
 Meteor.startup(() => {
-  Log.debug("Client startup");
+  Log.debug('Client startup');
 
   if (document.cookie) {
     Log.debug("Cookies exist, attempting Drupal login");

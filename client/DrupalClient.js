@@ -3,7 +3,7 @@
  *   Contains the DrupalClient class.
  */
 
-Log.debug("Defining client/DrupalClient");
+Log.debug('Defining client/DrupalClient');
 
 /**
  * The client-side class for the package.
@@ -65,7 +65,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
     // - Merge public settings to instance.
     Object.assign(this.settings.client, meteor.settings.public[this.SERVICE_NAME]);
 
-    meteor.call("accounts-drupal.initState", (err, res) => {
+    meteor.call('accounts-drupal.initState', (err, res) => {
       if (err) {
         return;
       }
@@ -104,10 +104,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
    */
   cookies(cookie) {
     check(cookie, String);
-    let asArray = cookie.split(";");
+    let asArray = cookie.split(';');
     let result = {};
     asArray.forEach((v) => {
-      let [name, value] = v.trim().split("=");
+      let [name, value] = v.trim().split('=');
       try {
         this.checkCookie(name, value);
         result[name] = value;
@@ -131,7 +131,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
     const min = 1000;
     const max = 5000;
     const delay = Math.round(Math.random() * (max - min) + min);
-    this.logger.debug('Deferred login in ' + delay + " msec");
+    this.logger.debug('Deferred login in ' + delay + ' msec');
     this.setTimeout(() => {
       this.login(document.cookie);
     }, delay);
@@ -140,8 +140,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
   getDefaultUser() {
     return {
       uid: 0,
-      name: "undefined name",
-      roles: ["anonymous user"]
+      name: 'undefined name',
+      roles: ['anonymous user']
     };
   }
 
@@ -162,12 +162,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
     if (_.isEmpty(cookies)) {
       let message;
       if (this.accounts.userId()) {
-        message = "No cookie found: logging out.";
+        message = 'No cookie found: logging out.';
         this.logger.info(message);
         this.logout();
       }
       else {
-        message = "No cookie found, not trying to login.";
+        message = 'No cookie found, not trying to login.';
         this.logger.warn(Object.assign(logArg, { message }));
       }
       if (_.isFunction(callback)) {
@@ -189,12 +189,12 @@ DrupalClient = class DrupalClient extends DrupalBase {
       // because it happens in a loop. Do NOT remove that property.
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: "Not logged-in on Drupal." }));
+          this.logger.warn(Object.assign(logArg, { message: 'Not logged-in on Drupal.' }));
           this.logout();
         }
         else {
           this.backgroundLoginEnable();
-          this.logger.info(Object.assign(logArg, { message: "Logged-in on Drupal." }));
+          this.logger.info(Object.assign(logArg, { message: 'Logged-in on Drupal.' }));
         }
         if (_.isFunction(callback)) {
           callback(err, res);
@@ -216,7 +216,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @inheritDoc
    */
   initStateMethod() {
-    this.logger.debug("Client stub for initStateMethod, doing nothing.");
+    this.logger.debug('Client stub for initStateMethod, doing nothing.');
     return this.getDefaultUser();
   }
 
@@ -238,7 +238,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
   }
 
   onRefresh(event, userId) {
-    this.logger.info("Automatic login status update: " + event + "(" + userId + ")");
+    this.logger.info('Automatic login status update: ' + event + '(' + userId + ')');
     // this.login(document.cookie);
     switch (event) {
       case 'anonymous':
@@ -272,9 +272,9 @@ DrupalClient = class DrupalClient extends DrupalBase {
    */
   registerHelpers() {
     const helpers = [
-      { name: "accountsDrupalUserId", code: () => client.uid },
-      { name: "accountsDrupalUsername", code: () => client.name },
-      { name: "accountsDrupalRoles", code: () => client.roles }
+      { name: 'accountsDrupalUserId', code: () => client.uid },
+      { name: 'accountsDrupalUsername', code: () => client.name },
+      { name: 'accountsDrupalRoles', code: () => client.roles }
     ];
 
     helpers.forEach(({ name, code }) => this.template.registerHelper(name, code));
@@ -302,8 +302,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
 
   get roles() {
     const user = this.user();
-    const roles = user ? this.user().profile[this.SERVICE_NAME].roles : ["anonymous user"];
+    const roles = user ? this.user().profile[this.SERVICE_NAME].roles : ['anonymous user'];
     return roles;
   }
-
 };

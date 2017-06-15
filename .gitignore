@@ -4,3 +4,4 @@
 .npm/
 
 help/*.ps
+/node_modules
