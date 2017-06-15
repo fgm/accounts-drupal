@@ -11,10 +11,11 @@ Meteor.startup(function () {
   // This path must match the one in Drupal module at meteor/src/Notifier::PATH.
   WebApp.connectHandlers.use('/drupalUserEvent', function (req, res) {
     res.writeHead(200);
-    res.end('Send refresh request');
+    res.end('Sent refresh request');
 
-    Log.info('Storing refresh request.');
-    drupal.server.storeUpdateRequest(req.query);
+    const remote = req.socket.remoteAddress;
+    Log.info(`Storing refresh request sent from ${remote}`);
+    drupal.server.storeUpdateRequest(req.query, req.socket.remoteAddress);
   });
 
   Log.debug('HTTP routes bound.');

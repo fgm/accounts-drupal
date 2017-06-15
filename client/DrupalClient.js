@@ -194,7 +194,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
         }
         else {
           this.backgroundLoginEnable();
-          this.logger.info(Object.assign(logArg, { message: 'Logged-in on Drupal.' }));
+          this.logger.debug(Object.assign(logArg, { message: 'Logged-in on Drupal.' }));
         }
         if (_.isFunction(callback)) {
           callback(err, res);

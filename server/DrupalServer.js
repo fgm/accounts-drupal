@@ -412,9 +412,12 @@ DrupalServer = class DrupalServer extends DrupalBase {
     switch (doc.event) {
       case 'user_delete':
       case 'user_logout':
-        // Affected clients will logout automatically, and will not be able to
-        // login again, so they do not need to be notified: any attempts at
-        // logging in because of auto-login would fail anyway.
+      case 'user_update':
+        // Affected clients will logout automatically:
+        // - On delete and logout, they will not be able to login again, so
+        //   they do not need to be notified: any attempts at logging in because
+        //   of auto-login would fail anyway.
+        // - On updates, they will just re-login to update their profile.
         this.userDelete(doc.userId);
         break;
 
@@ -423,12 +426,6 @@ DrupalServer = class DrupalServer extends DrupalBase {
         // same as the one which just logged in. Logged-in users are not
         // affected, since Drupal does not re-log logged-in users.
         this.emit('anonymous');
-        break;
-
-      case 'user_update':
-        // If a single user was modified, only connections logged-in as that
-        // user need to refresh their information.
-        this.emit('userId', doc.userId);
         break;
 
       case 'field_delete':
@@ -474,12 +471,23 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *     - "field_delete", "field_insert", "field_update",
    *     - "entity_field_update"
    *   - {int} delay: the delay to wait before inserting the event, in msec.
+   * @param remoteAddress
+   *   The address of the HTTP client (or proxy).
    *
    * @returns {void}
    *
    * @see \Drupal\meteor\IdentityListener::__destruct()
+   * @TODO handle proxies.
    */
-  storeUpdateRequest(rawQuery) {
+  storeUpdateRequest(rawQuery, remoteAddress) {
+    const index = this.settings.server.updaters.indexOf(remoteAddress);
+    if (index === -1) {
+      this.logger.error('Update request from disallowed address, ignored.', {
+        remoteAddress,
+      });
+      return;
+    }
+
     const DEFAULT_DELAY = 1000;
 
     const query = rawQuery || {};

@@ -5,6 +5,12 @@
     "site_options": {
       "//": "You can add any option in this object, most usefully \"auth\": \"user:password\""
     },
+    "updaters": [
+      "// An array of hostnames of IP addresses from which to accept updates",
+      "// A single Drupal site is likely to need several such addresses, one per web server",
+      "// They will often differ from the IP of the 'site' , which is likely to be a proxy",
+      "127.0.0.1"
+    ],
     "anonymousName": "Anome",
     "appToken": "sometoken",
 
