@@ -3,19 +3,20 @@
  *   Server-side startup code.
  */
 
-Log.debug("Loading server/startup");
+Log.debug('Loading server/startup');
 
 Meteor.startup(function () {
-  Log.debug("Startup server/web");
+  Log.debug('Startup server/web');
 
   // This path must match the one in Drupal module at meteor/src/Notifier::PATH.
-  WebApp.connectHandlers.use("/drupalUserEvent", function (req, res) {
+  WebApp.connectHandlers.use('/drupalUserEvent', function (req, res) {
     res.writeHead(200);
-    res.end("Send refresh request");
+    res.end('Sent refresh request');
 
-    Log.info("Storing refresh request.");
-    drupal.server.storeUpdateRequest(req.query);
+    const remote = req.socket.remoteAddress;
+    Log.info(`Storing refresh request sent from ${remote}`);
+    drupal.server.storeUpdateRequest(req.query, req.socket.remoteAddress);
   });
 
-  Log.debug("HTTP routes bound.");
+  Log.debug('HTTP routes bound.');
 });

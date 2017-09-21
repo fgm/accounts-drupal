@@ -1,6 +1,6 @@
 # Accounts-drupal
 
-This is an accounts package for Meteor 1.2 to 1.4, using Drupal sessions transparently:
+This is an accounts package for Meteor 1.2 to 1.5, using Drupal sessions transparently:
 
 - The Meteor app is configured to use a specific Drupal server for sessions
 - Any user with a session on the Drupal server is automatically logged in on Meteor, without any UI-level intervention
@@ -10,8 +10,8 @@ This is an accounts package for Meteor 1.2 to 1.4, using Drupal sessions transpa
 
 ## Requirements
 
-- Meteor 1.[2-4].x
-- Drupal 8.[0-3].x
+- Meteor 1.2.x, 1.3.x, 1.4.x, or 1.5.x
+- Drupal 8.0.x, 8.1.x, 8.2.x or 8.3.x
 - The Drupal [meteor module] from FGM's Github, not to be confused with the existing [meteor sandbox] from drupal.org.
 - The cookie domain for the Meteor application *must* be the same or a subdomain of the Drupal site. This is a consequence of [cookie scope]. Using the same domain on different IP ports works.
 

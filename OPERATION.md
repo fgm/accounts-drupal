@@ -30,7 +30,7 @@ Event \ User state  | Server                    | Anon           | X            
 user_delete(X)      | delete(X)                 | not notified   | → logged out   | not notified   |
 user_login(X)       | emit('anonymous')         | deferred login | ignored        | ignored        |
 user_logout(X)      | delete(X)                 | not notified   | → logged out   | not notified   |
-user_update(X)      | emit('userId', userId)    | ignored        | login          | ignored        |
+user_update(X)      | update(X), emit('userId', userId) | ignored | login         | ignored        |
 field_delete        | ignored                   | not notified   | not notified   | not notified   | 
 field_insert        | ignored                   | not notified   | not notified   | not notified   |
 field_update        | ignored                   | not notified   | not notified   | not notified   |

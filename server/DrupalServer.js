@@ -1,10 +1,9 @@
-
 /**
  * @file
  *   Contains the DrupalServer class.
  */
 
-Log.debug("Defining server/DrupalServer");
+Log.debug('Defining server/DrupalServer');
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -53,7 +52,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // - Initialize Drupal-dependent state.
     this.state = this.initStateMethod(true);
     if (this.state.online === true) {
-      logger.debug("Retrieved Drupal site information.");
+      logger.debug('Retrieved Drupal site information.');
     }
     else {
       throw new meteor.Error("init-state", `Could not reach Drupal server at ${this.settings.server.site}.`);
@@ -124,7 +123,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   emit(action, userId = 0) {
-    this.logger.debug("emitting", action, userId);
+    this.logger.debug('emitting', action, userId);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
 
@@ -139,7 +138,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   getCollection(meteor) {
     const rawName = `${DrupalServer.SERVICE_NAME}_updates`;
-    const name = rawName.replace("-", "_");
+    const name = rawName.replace('-', '_');
     const collection = new meteor.Collection(name);
     return collection;
   }
@@ -154,14 +153,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
    */
   getRootFields() {
     if (!this.configuration) {
-      throw new Meteor.Error("service-unconfigured", "The service needs to be configured");
+      throw new Meteor.Error('service-unconfigured', 'The service needs to be configured');
     }
     const defaultRootFields = [
       // From accounts-base.
-      "profile",
+      'profile',
 
       // From accounts-password with accounts-base support.
-      "username", "emails"
+      'username', 'emails'
 
       // Any other names would only appear with autopublish enabled.
     ];
@@ -178,14 +177,14 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {undefined}
    */
   getSessionCookie(cookieBlob) {
-    let homogeneousCookieBlob = "; " + cookieBlob;
+    let homogeneousCookieBlob = '; ' + cookieBlob;
 
     let cookieName = this.state.cookieName;
     let cookieValue;
     let cookies = homogeneousCookieBlob.split(`; ${cookieName}=`);
 
     if (cookies.length === 2) {
-      cookieValue = cookies.pop().split(";").shift();
+      cookieValue = cookies.pop().split(';').shift();
     }
 
     return cookieValue;
@@ -238,19 +237,19 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
     const cookies = loginRequest[NAME];
-    let loginResult = this.loginCheck(cookies, "Login not handled.", false);
+    let loginResult = this.loginCheck(cookies, 'Login not handled.', false);
     if (loginResult) {
       return loginResult;
     }
 
     this.logger.debug({
       app: NAME,
-      message: "Drupal login attempt",
+      message: 'Drupal login attempt',
       cookies
     });
 
     // Shortcut: avoid WS call if Drupal is not available.
-    loginResult = this.loginCheck(this.state.online, "Drupal server is not online.");
+    loginResult = this.loginCheck(this.state.online, 'Drupal server is not online.');
     if (loginResult) {
       return loginResult;
     }
@@ -258,7 +257,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     // Shortcut: avoid WS call if cookie name is not the expected one.
     const cookieName = this.state.cookieName;
     const cookieValue = cookies[cookieName];
-    loginResult = this.loginCheck(cookieValue, "No cookie matches Drupal session name.");
+    loginResult = this.loginCheck(cookieValue, 'No cookie matches Drupal session name.');
     if (loginResult) {
       return loginResult;
     }
@@ -270,7 +269,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     }
     catch (e) {
       let expectedException = e instanceof Match.Error;
-      loginResult = this.loginCheck(expectedException, "Malformed session cookie");
+      loginResult = this.loginCheck(expectedException, 'Malformed session cookie');
       if (loginResult) {
         return loginResult;
       }
@@ -282,7 +281,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     const userInfo = this.whoamiMethod(cookieName, cookieValue);
 
     // Use our ever-so-sophisticated authentication logic.
-    loginResult = this.loginCheck(userInfo.uid, "Session was not logged on Drupal.");
+    loginResult = this.loginCheck(userInfo.uid, 'Session was not logged on Drupal.');
     if (loginResult) {
       return loginResult;
     }
@@ -313,7 +312,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       username: submittedUserId,
       emails: [],
       // But no other field is published unless autopublish is on.
-      onlyWithAutopublish: "only with autopublish"
+      onlyWithAutopublish: 'only with autopublish'
     };
     userOptions.profile[NAME] = serviceData.onProfile;
     return this.accounts.updateOrCreateUserFromExternalService(NAME, serviceData, userOptions);
@@ -379,7 +378,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     let info = {};
     try {
-      let ret = this.http.get(site + "/meteor/siteInfo", options);
+      let ret = this.http.get(site + '/meteor/siteInfo', options);
       info = this.json.parse(ret.content);
       info.online = true;
     }
@@ -406,44 +405,41 @@ DrupalServer = class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   observe(changeType, doc) {
-    if (changeType !== "added") {
+    if (changeType !== 'added') {
       return;
     }
 
     switch (doc.event) {
-      case "user_delete":
-      case "user_logout":
-        // Affected clients will logout automatically, and will not be able to
-        // login again, so they do not need to be notified: any attempts at
-        // logging in because of auto-login would fail anyway.
+      case 'user_delete':
+      case 'user_logout':
+      case 'user_update':
+        // Affected clients will logout automatically:
+        // - On delete and logout, they will not be able to login again, so
+        //   they do not need to be notified: any attempts at logging in because
+        //   of auto-login would fail anyway.
+        // - On updates, they will just re-login to update their profile.
         this.userDelete(doc.userId);
         break;
 
-      case "user_login":
+      case 'user_login':
         // Any not-yet logged-in user may be able to login if the browser is the
         // same as the one which just logged in. Logged-in users are not
         // affected, since Drupal does not re-log logged-in users.
-        this.emit("anonymous");
+        this.emit('anonymous');
         break;
 
-      case "user_update":
-        // If a single user was modified, only connections logged-in as that
-        // user need to refresh their information.
-        this.emit("userId", doc.userId);
-        break;
-
-      case "field_delete":
-      case "field_insert":
-      case "field_update":
-      case "entity_field_update":
+      case 'field_delete':
+      case 'field_insert':
+      case 'field_update':
+      case 'entity_field_update':
         // These are structural changes, so any logged-in user needs to refresh
         // its information. Non-logged-in users don't have any, so they are not
         // affected.
-        this.emit("authenticated");
+        this.emit('authenticated');
         break;
 
       default:
-        this.logger.warn("Observed unsupported event type " + doc.event);
+        this.logger.warn('Observed unsupported event type ' + doc.event);
         break;
     }
   }
@@ -459,8 +455,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
   setupUpdatesObserver() {
     this.updatesCollection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
     this.updatesCollection.find({}).observe({
-      added: (docs) => { this.observe("added", docs); },
-      changed: (docs) => { this.observe("changed", docs); }
+      added: (docs) => { this.observe('added', docs); },
+      changed: (docs) => { this.observe('changed', docs); }
     });
   }
 
@@ -475,12 +471,23 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *     - "field_delete", "field_insert", "field_update",
    *     - "entity_field_update"
    *   - {int} delay: the delay to wait before inserting the event, in msec.
+   * @param remoteAddress
+   *   The address of the HTTP client (or proxy).
    *
    * @returns {void}
    *
    * @see \Drupal\meteor\IdentityListener::__destruct()
+   * @TODO handle proxies.
    */
-  storeUpdateRequest(rawQuery) {
+  storeUpdateRequest(rawQuery, remoteAddress) {
+    const index = this.settings.server.updaters.indexOf(remoteAddress);
+    if (index === -1) {
+      this.logger.error('Update request from disallowed address, ignored.', {
+        remoteAddress,
+      });
+      return;
+    }
+
     const DEFAULT_DELAY = 1000;
 
     const query = rawQuery || {};
@@ -489,24 +496,24 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     // If there is any kind of delay ensure it is a strictly positive integer.
     let usDelay = query.delay;
-    const delay = (typeof usDelay !== "undefined")
+    const delay = (typeof usDelay !== 'undefined')
       ? parseInt(usDelay, 10) || DEFAULT_DELAY
       : 0;
 
     const validEvents = [
       // Drupal 8 user hooks.
-      "user_delete", "user_login", "user_logout", "user_update",
+      'user_delete', 'user_login', 'user_logout', 'user_update',
 
       // Drupal 8 field hooks.
-      "field_delete", "field_insert", "field_update",
+      'field_delete', 'field_insert', 'field_update',
 
       // A synthetic event for all entity_type and field_storage events
       // caught by the IdentityListener instead of the hooks.
-      "entity_field_update"
+      'entity_field_update'
     ];
 
     if (validEvents.indexOf(query.event) === -1) {
-      this.logger.warn("Invalid update request, ignored.", {
+      this.logger.warn('Invalid update request, ignored.', {
         delay,
         event,
         userId
@@ -519,7 +526,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
       event,
       userId
     };
-    this.logger.debug("Storing update", update);
+    this.logger.debug('Storing update', update);
     // Always use a timeout: it will be 0.
     Meteor.setTimeout(() => {
       update.insertedAt = new Date();
@@ -539,7 +546,7 @@ DrupalServer = class DrupalServer extends DrupalBase {
     const userId = parseInt(rawUserId, 10);
     this.logger.info(`User ${userId} was deleted.`);
     this.usersCollection.remove({
-      "services.accounts-drupal.public.uid": userId
+      'services.accounts-drupal.public.uid': userId
     });
   }
 
@@ -557,12 +564,12 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   - roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
-    const url = this.settings.server.site + "/meteor/whoami";
+    const url = this.settings.server.site + '/meteor/whoami';
     const settingsOptions = this.settings.server.site_options;
     const defaultOptions = {
       headers: {
-        "accept": "application/json",
-        "cookie": cookieName + "=" + cookieValue
+        'accept': 'application/json',
+        'cookie': cookieName + '=' + cookieValue
       },
       timeout: 10000,
       time: true
@@ -582,9 +589,9 @@ DrupalServer = class DrupalServer extends DrupalBase {
     }
     catch (err) {
       info = {
-        "uid": 0,
-        "name": this.state.anonymousName,
-        "roles": []
+        'uid': 0,
+        'name': this.state.anonymousName,
+        'roles': []
       };
       t1 = +new Date();
       this.logger.error(`Error: ${err.message} in ${t1 - t0} msec.`);
