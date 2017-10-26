@@ -2,7 +2,7 @@
  * @file
  *   Package description file for accounts-drupal.
  *
- * Note: package.js is NOT passed to Babel on Meteor 1.2-1.5, so no ES6.
+ * Note: package.js is NOT passed to Babel on Meteor 1.2-1.6, so no ES6.
  */
 
 // Dependencies.
@@ -22,8 +22,8 @@ const coreDependencies = [
 
 Package.describe({
   name: 'fgm:accounts-drupal',
-  version: '0.3.2',
-  summary: 'A Meteor 1.2/1.3/1.4/1.5 accounts system using Drupal 8 sessions.',
+  version: '0.3.3',
+  summary: 'A Meteor 1.2 to 1.6 accounts system using Drupal 8 sessions.',
   git: 'https://github.com/FGM/accounts-drupal',
   documentation: 'README.md'
 });

@@ -1,3 +1,5 @@
+import DrupalConfiguration from './DrupalConfiguration';
+
 const SERVICE_NAME = 'mock-service';
 
 /**
@@ -18,7 +20,7 @@ function mockSettings(serviceName) {
 
 Tinytest.add('Testing correct configuration', function (test) {
   const settings = mockSettings(SERVICE_NAME);
-  settings.public[SERVICE_NAME] = {};
+  settings.public[SERVICE_NAME] = { backgroundLogin: 60 };
 
   let f = new DrupalConfiguration(SERVICE_NAME, settings, Log, ServiceConfiguration);
 
@@ -68,6 +70,9 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   });
 
   // Missing configurations on configuration service.
+  settings[SERVICE_NAME] = {};
+  settings.public = {};
+  settings.public[SERVICE_NAME] = { backgroundLogin: 60 };
   configuration = _.clone(ServiceConfiguration);
   configuration.configurations = null;
   test.throws(instantiation, function (e) {

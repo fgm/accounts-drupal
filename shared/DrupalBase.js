@@ -14,8 +14,6 @@ DrupalBase = class DrupalBase {
   /**
    * Constructor.
    *
-   * @param {AccountsClient} accounts
-   *   The AccountsClient service.
    * @param {Meteor} meteor
    *   The Meteor global.
    * @param {Log} logger
@@ -38,8 +36,7 @@ DrupalBase = class DrupalBase {
    *
    * @constructor
    */
-  constructor(accounts, meteor, logger, match, stream) {
-    this.accounts = accounts || null;
+  constructor(meteor, logger, match, stream) {
     this.logger = logger || null;
     this.match = match || null;
     this.stream = stream || null;
