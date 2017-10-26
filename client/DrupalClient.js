@@ -30,7 +30,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @constructor
    */
   constructor(accounts, meteor, logger, match, stream, template) {
-    super(accounts, meteor, logger, match, stream);
+    super(meteor, logger, match, stream);
+    this.accounts = accounts;
     this.call = (...args) => (meteor.call(...args));
 
     /**

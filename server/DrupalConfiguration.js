@@ -85,3 +85,5 @@ DrupalConfiguration = class DrupalConfiguration {
     this.configurations.upsert(selector, serviceConfig);
   }
 };
+
+export default DrupalConfiguration;

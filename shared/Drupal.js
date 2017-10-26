@@ -11,8 +11,8 @@ Log.debug('Defining shared/Drupal');
  * @type {Drupal}
  */
 Drupal = class Drupal extends DrupalBase {
-  constructor(accounts, meteor, log, client, server) {
-    super(accounts, meteor, log);
+  constructor(meteor, log, client, server) {
+    super(meteor, log);
     if (this.location === 'client') {
       check(client, DrupalClient);
     }

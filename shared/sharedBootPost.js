@@ -18,4 +18,4 @@ if (typeof server === 'undefined') {
   server = null;
 }
 
-drupal = new Drupal(Accounts, Meteor, Log, client, server);
+drupal = new Drupal(Meteor, Log, client, server);

@@ -35,7 +35,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
    *   An unconfigured service instance.
    */
   constructor(accounts, meteor, logger, match, stream, configuration, http, json) {
-    super(accounts, meteor, logger, match, stream);
+    super(meteor, logger, match, stream);
+    this.accounts = accounts;
     this.updatesCollection = this.getCollection(meteor);
     this.usersCollection = meteor.users;
     this.configuration = configuration;
