@@ -50,11 +50,13 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.clearInterval = meteor.clearInterval.bind(this);
 
     /**
-     * The Meteor random service.
+     * The Meteor random.fraction() service.
      *
-     * @type {Random}
+     * @type {Function}
+     *
+     * @returns {Number}
      */
-    this.random = random;
+    this.fraction = random.fraction.bind(random);
 
     /**
      * The Meteor.setInterval() function, bound to this.
@@ -143,35 +145,16 @@ DrupalClient = class DrupalClient extends DrupalBase {
   /**
    * Get a pseudo-random interval based on the backgroundLogin setting +/- 30%.
    *
-   * Make it possible to obtain the limit values as often as any other value in
-   * spite of integer rounding, which otherwise makes it only half as likely.
-   *
-   * Comments explaining intervals in the code assume backgroundLogin == 1, so
-   * backgroundLoginBase == 1000.
-   *
    * @returns {number}
    *   The integer interval.
    */
   getInterval() {
     // Value of this setting was validated in server-side DrupalConfiguration.
     const backgroundLoginBase = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
-    const deviationRatio = 0.3;
-    // Per random.fraction() spec, frc ∈ [-1,+1]
-    const frc = 2 * (this.random.fraction() - 0.5);
+    const ratio = 0.3;
 
-    // closedDeviation ∈ [-300, +300]
-    const closeDeviation = backgroundLoginBase * deviationRatio * frc;
-
-    // Float arithmetic, not math:
-    // deviation ∈ [-300.5 - ε, 300.5 + ε] ⇔ deviation ∈ ]-300.5, +300.5[
-    const deviation = (closeDeviation < 0)
-      ? closeDeviation - 0.5 + Number.EPSILON
-      : closeDeviation + 0.5 - Number.EPSILON;
-
-    // Because of rounding, interval ∈ [700, 1300], with interval limits as
-    // likely as any other value.
-    const interval = Math.round(backgroundLoginBase + deviation);
-    return interval;
+    const interval = backgroundLoginBase * (1 - ratio * (2 * this.fraction() - 1));
+    return Math.round(interval);
   }
 
   /**
