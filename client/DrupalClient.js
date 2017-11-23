@@ -26,29 +26,55 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   The stream used by the package.
    * @param {ITemplate} template
    *   The Meteor Template service.
+   * @param {Random} random
+   *   The Meteor random service (either node crrypto or browser crypto).
    *
    * @constructor
    */
-  constructor(accounts, meteor, logger, match, stream, template) {
+  constructor(accounts, meteor, logger, match, stream, template, random) {
     super(meteor, logger, match, stream);
     this.accounts = accounts;
     this.call = (...args) => (meteor.call(...args));
 
     /**
+     * The Meteor random.fraction() service.
+     *
+     * MUST be assigned before using getInterval() as actualLoginInterval does.
+     *
+     * @type {Function}
+     *
+     * @returns {number}
+     */
+    this.fraction = random.fraction.bind(random);
+
+    /**
+     * The pseudo-randomized backgroundLogin interval; in milliseconds.
+     *
+     * @type {number}
+     *
+     * @see DrupalClient.backgroundLoginEnable()
+     */
+    this.actualLoginInterval = this.getInterval();
+
+    /**
      * The result of a this.setInterval() call.
+     *
      * @type {Any}
      */
     this.backgroundLoginInterval = null;
 
     /**
+     * An interval handle from meteor.setInterval.
+
      * @param {Any} id
      */
     this.clearInterval = meteor.clearInterval.bind(this);
+
     /**
      * The Meteor.setInterval() function, bound to this.
      *
      * @param {Function} func
-     * @param {Number} delay
+     * @param {number} delay
      *
      * @return {Any} id
      */
@@ -57,7 +83,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
      * The Meteor.setTimeout() function, bound to this.
      *
      * @param {Function} func
-     * @param {Number} delay
+     * @param {number} delay
      */
     this.setTimeout = meteor.setTimeout.bind(this);
     this.template = template;
@@ -86,11 +112,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
    */
   backgroundLoginEnable() {
     if (!this.backgroundLoginInterval) {
-      // Value of this setting was validated in server-side DrupalConfiguration.
-      const backgroundLogin = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
+      this.actualLoginInterval = this.getInterval();
       this.backgroundLoginInterval = this.setInterval(() => {
         this.onBackgroundLogin();
-      }, backgroundLogin);
+      }, this.actualLoginInterval);
     }
   }
 
@@ -122,28 +147,27 @@ DrupalClient = class DrupalClient extends DrupalBase {
     return result;
   }
 
-  /**
-   * Attempt login after a pseudo-random delay.
-   *
-   * @return {void}
-   */
-  deferredLogin() {
-    // TODO use settings and/or an automatic retry with exponential backoff.
-    const min = 1000;
-    const max = 5000;
-    const delay = Math.round(Math.random() * (max - min) + min);
-    this.logger.debug('Deferred login in ' + delay + ' msec');
-    this.setTimeout(() => {
-      this.login(document.cookie);
-    }, delay);
-  }
-
   getDefaultUser() {
     return {
       uid: 0,
       name: 'undefined name',
       roles: ['anonymous user']
     };
+  }
+
+  /**
+   * Get a pseudo-random interval based on the backgroundLogin setting +/- 30%.
+   *
+   * @returns {number}
+   *   The integer interval.
+   */
+  getInterval() {
+    // Value of this setting was validated in server-side DrupalConfiguration.
+    const backgroundLoginBase = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
+    const ratio = 0.3;
+
+    const interval = backgroundLoginBase * (1 - ratio * (2 * this.fraction() - 1));
+    return Math.round(interval);
   }
 
   /**
@@ -233,24 +257,37 @@ DrupalClient = class DrupalClient extends DrupalBase {
     if (this.user()) {
       this.login(document.cookie);
     }
-    else if (typeof this.backgroundLoginInterval !== 'undefined') {
+    else if (this.backgroundLoginInterval !== null) {
       this.clearInterval(this.backgroundLoginInterval);
+      this.backgroundLoginInterval = null;
     }
   }
 
+  /**
+   * React to events.
+   *
+   * @param {string} event
+   *   The event string value.
+   * @param {number} userId
+   *   The userId, if event is "userId".
+   *
+   * @returns {void}
+   *
+   * @see DrupalServer.observe()
+   */
   onRefresh(event, userId) {
     this.logger.info('Automatic login status update: ' + event + '(' + userId + ')');
     // this.login(document.cookie);
     switch (event) {
       case 'anonymous':
         if (!this.user()) {
-          this.deferredLogin();
+          this.login(document.cookie);
         }
         break;
 
       case 'authenticated':
         if (this.user()) {
-          this.deferredLogin();
+          this.login(document.cookie);
         }
         break;
 

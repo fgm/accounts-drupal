@@ -18,6 +18,7 @@ module.exports = {
     'Meteor': true,
     'Mongo': true,
     'Package': true,
+    'Random': true,
     'ServiceConfiguration': true,
     'Session': true,
     'Template': true,
