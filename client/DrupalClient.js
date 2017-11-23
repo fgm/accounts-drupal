@@ -26,33 +26,38 @@ DrupalClient = class DrupalClient extends DrupalBase {
    *   The stream used by the package.
    * @param {ITemplate} template
    *   The Meteor Template service.
+   * @param {Random} random
+   *   The Meteor random service (either node crrypto or browser crypto).
    *
    * @constructor
    */
-  constructor(accounts, meteor, logger, match, stream, template) {
+  constructor(accounts, meteor, logger, match, stream, template, random) {
     super(meteor, logger, match, stream);
     this.accounts = accounts;
     this.call = (...args) => (meteor.call(...args));
 
     /**
-     * The result of a this.setInterval() call.
+     * The handle returned by a this.setTimeout() call.
+     *
+     * This is NOT the interval between timeouts.
+     *
      * @type {Any}
      */
-    this.backgroundLoginInterval = null;
+    this.backgroundLoginTimeout = null;
 
     /**
      * @param {Any} id
+     *   A timeout handle from meteor.setTimeout.
      */
-    this.clearInterval = meteor.clearInterval.bind(this);
+    this.clearTimeout = meteor.clearTimeout.bind(this);
+
     /**
-     * The Meteor.setInterval() function, bound to this.
+     * The Meteor random service.
      *
-     * @param {Function} func
-     * @param {Number} delay
-     *
-     * @return {Any} id
+     * @type {Random}
      */
-    this.setInterval = meteor.setInterval.bind(this);
+    this.random = random;
+
     /**
      * The Meteor.setTimeout() function, bound to this.
      *
@@ -60,6 +65,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
      * @param {Number} delay
      */
     this.setTimeout = meteor.setTimeout.bind(this);
+
     this.template = template;
     this.user = meteor.user.bind(this);
 
@@ -73,6 +79,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
       this.state = res;
     });
 
+    meteor.onLogout(this.onLogout);
+
     this.stream.on(this.EVENT_NAME, this.onRefresh.bind(this));
     this.registerHelpers();
   }
@@ -85,13 +93,15 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @return {void}
    */
   backgroundLoginEnable() {
-    if (!this.backgroundLoginInterval) {
-      // Value of this setting was validated in server-side DrupalConfiguration.
-      const backgroundLogin = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
-      this.backgroundLoginInterval = this.setInterval(() => {
-        this.onBackgroundLogin();
-      }, backgroundLogin);
+    console.log('bLE', this.backgroundLoginTimeout);
+    if (this.backgroundLoginTimeout !== null) {
+      return;
     }
+
+    // Value of this setting was validated in server-side DrupalConfiguration.
+    this.backgroundLoginTimeout = this.setTimeout(() => {
+      this.onBackgroundLogin();
+    }, this.getTimeout());
   }
 
   /**
@@ -122,28 +132,40 @@ DrupalClient = class DrupalClient extends DrupalBase {
     return result;
   }
 
-  /**
-   * Attempt login after a pseudo-random delay.
-   *
-   * @return {void}
-   */
-  deferredLogin() {
-    // TODO use settings and/or an automatic retry with exponential backoff.
-    const min = 1000;
-    const max = 5000;
-    const delay = Math.round(Math.random() * (max - min) + min);
-    this.logger.debug('Deferred login in ' + delay + ' msec');
-    this.setTimeout(() => {
-      this.login(document.cookie);
-    }, delay);
-  }
-
   getDefaultUser() {
     return {
       uid: 0,
       name: 'undefined name',
       roles: ['anonymous user']
     };
+  }
+
+  /**
+   * Return a pseudo-random timeout based on the backgroundLogin setting.
+   *
+   * Make it possible to obtain the limit values as often as any other value in
+   * spite of integer rounding, which otherwise makes it only half as likely.
+   *
+   * @returns {number}
+   *   The integer timeout.
+   */
+  getTimeout() {
+    const backgroundLoginBase = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
+    const deviationRatio = 0.2;
+    // frc ∈ [-1,+1]
+    const frc = 2 * (this.random.fraction() - 0.5);
+
+    // closedDeviation ∈ [-200, +200]
+    const closeDeviation = backgroundLoginBase * deviationRatio * frc;
+    // Float arithmetic, not math:
+    // deviation ∈ [-200.5 - ε, 200.5 + ε] ⇔ deviation ∈ ]-200.5, +200.5[
+    const deviation = (closeDeviation < 0)
+      ? closeDeviation - 0.5 + Number.EPSILON
+      : closeDeviation + 0.5 - Number.EPSILON;
+
+    // Timeout ∈ [800, 1200], with limits as likely as any other value.
+    const timeout = Math.round(backgroundLoginBase + deviation);
+    return timeout;
   }
 
   /**
@@ -231,13 +253,38 @@ DrupalClient = class DrupalClient extends DrupalBase {
   onBackgroundLogin() {
     this.logger.debug('Background login check');
     if (this.user()) {
-      this.login(document.cookie);
+      this.login(document.cookie, () => {
+        this.backgroundLoginTimeout = this.setTimeout(() => {
+          this.onBackgroundLogin();
+        }, this.getTimeout());
+      });
     }
-    else if (typeof this.backgroundLoginInterval !== 'undefined') {
-      this.clearInterval(this.backgroundLoginInterval);
+    else if (this.backgroundLoginTimeout !== null) {
+      this.clearTimeout(this.backgroundLoginTimeout);
+      this.backgroundLoginTimeout = null;
     }
   }
 
+  onLogout() {
+    console.log('Logging out');
+    if (this.backgroundLoginTimeout !== null) {
+      this.clearTimeout(this.backgroundLoginTimeout);
+      this.backgroundLoginTimeout = null;
+    }
+  }
+
+  /**
+   * React to events.
+   *
+   * @param {string} event
+   *   The event string value.
+   * @param {number} userId
+   *   The userId, if event is "userId".
+   *
+   * @returns {void}
+   *
+   * @see DrupalServer.observe()
+   */
   onRefresh(event, userId) {
     this.logger.info('Automatic login status update: ' + event + '(' + userId + ')');
     // this.login(document.cookie);

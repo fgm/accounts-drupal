@@ -13,6 +13,7 @@ const coreDependencies = [
   'http',
   'logging',
   'mongo',
+  'random',
   'service-configuration',
   'templating',
   'tracker',
