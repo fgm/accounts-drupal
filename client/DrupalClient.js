@@ -37,7 +37,28 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.call = (...args) => (meteor.call(...args));
 
     /**
+     * The Meteor random.fraction() service.
+     *
+     * MUST be assigned before using getInterval() as actualLoginInterval does.
+     *
+     * @type {Function}
+     *
+     * @returns {number}
+     */
+    this.fraction = random.fraction.bind(random);
+
+    /**
+     * The pseudo-randomized backgroundLogin interval; in milliseconds.
+     *
+     * @type {number}
+     *
+     * @see DrupalClient.backgroundLoginEnable()
+     */
+    this.actualLoginInterval = this.getInterval();
+
+    /**
      * The result of a this.setInterval() call.
+     *
      * @type {Any}
      */
     this.backgroundLoginInterval = null;
@@ -50,19 +71,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
     this.clearInterval = meteor.clearInterval.bind(this);
 
     /**
-     * The Meteor random.fraction() service.
-     *
-     * @type {Function}
-     *
-     * @returns {Number}
-     */
-    this.fraction = random.fraction.bind(random);
-
-    /**
      * The Meteor.setInterval() function, bound to this.
      *
      * @param {Function} func
-     * @param {Number} delay
+     * @param {number} delay
      *
      * @return {Any} id
      */
@@ -71,7 +83,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
      * The Meteor.setTimeout() function, bound to this.
      *
      * @param {Function} func
-     * @param {Number} delay
+     * @param {number} delay
      */
     this.setTimeout = meteor.setTimeout.bind(this);
     this.template = template;
@@ -100,9 +112,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
    */
   backgroundLoginEnable() {
     if (!this.backgroundLoginInterval) {
+      this.actualLoginInterval = this.getInterval();
       this.backgroundLoginInterval = this.setInterval(() => {
         this.onBackgroundLogin();
-      }, this.getInterval());
+      }, this.actualLoginInterval);
     }
   }
 
