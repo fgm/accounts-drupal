@@ -79,13 +79,6 @@ DrupalClient = class DrupalClient extends DrupalBase {
      * @return {Any} id
      */
     this.setInterval = meteor.setInterval.bind(this);
-    /**
-     * The Meteor.setTimeout() function, bound to this.
-     *
-     * @param {Function} func
-     * @param {number} delay
-     */
-    this.setTimeout = meteor.setTimeout.bind(this);
     this.template = template;
     this.user = meteor.user.bind(this);
 
