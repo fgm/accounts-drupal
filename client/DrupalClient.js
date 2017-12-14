@@ -54,7 +54,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
      *
      * @see DrupalClient.backgroundLoginEnable()
      */
-    this.actualLoginInterval = this.getInterval();
+    this.backgroundLoginDelay = null;
 
     /**
      * The result of a this.setInterval() call.
@@ -112,10 +112,10 @@ DrupalClient = class DrupalClient extends DrupalBase {
    */
   backgroundLoginEnable() {
     if (!this.backgroundLoginInterval) {
-      this.actualLoginInterval = this.getInterval();
+      this.backgroundLoginDelay = this.getBackgroundLoginDelay();
       this.backgroundLoginInterval = this.setInterval(() => {
         this.onBackgroundLogin();
-      }, this.actualLoginInterval);
+      }, this.backgroundLoginDelay);
     }
   }
 
@@ -161,7 +161,7 @@ DrupalClient = class DrupalClient extends DrupalBase {
    * @returns {number}
    *   The integer interval.
    */
-  getInterval() {
+  getBackgroundLoginDelay() {
     // Value of this setting was validated in server-side DrupalConfiguration.
     const backgroundLoginBase = 1000 * parseInt(this.settings.client.backgroundLogin, 10);
     const ratio = 0.3;
