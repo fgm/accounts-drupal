@@ -15,7 +15,6 @@ const coreDependencies = [
   'mongo',
   'random',
   'service-configuration',
-  'templating',
   'tracker',
   'underscore',
   'webapp'
@@ -23,7 +22,7 @@ const coreDependencies = [
 
 Package.describe({
   name: 'fgm:accounts-drupal',
-  version: '0.3.4',
+  version: '0.3.5',
   summary: 'A Meteor 1.2 to 1.6 accounts system using Drupal 8 sessions.',
   git: 'https://github.com/FGM/accounts-drupal',
   documentation: 'README.md'
@@ -40,6 +39,7 @@ Package.onUse(function (api) {
   api.versionsFrom('1.2.1');
 
   api.use(coreDependencies);
+  api.use(['templating'], { weak: true });
 
   api.use('rocketchat:streamer@0.5.0');
 

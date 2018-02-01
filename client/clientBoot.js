@@ -7,8 +7,10 @@
 
 Log.debug('Client boot');
 
+const template = (typeof Template === 'undefined') ? null : Template;
+
 // Client is package-global but not exported.
-client = new DrupalClient(Accounts, Meteor, Log, Match, stream, Template, Random);
+client = new DrupalClient(Accounts, Meteor, Log, Match, stream, template, Random);
 
 /**
  * Need to wrap client.login in a closure to avoid overwriting this in login().
