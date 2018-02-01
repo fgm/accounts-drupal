@@ -297,11 +297,15 @@ DrupalClient = class DrupalClient extends DrupalBase {
   }
 
   /**
-   * Register template helpers for Blaze.
+   * Register template helpers for Blaze if template is available.
    *
    * @returns {void}
    */
   registerHelpers() {
+    if (!this.template) {
+      return;
+    }
+
     const helpers = [
       { name: 'accountsDrupalUserId', code: () => client.uid },
       { name: 'accountsDrupalUsername', code: () => client.name },
