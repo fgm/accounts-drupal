@@ -8,17 +8,21 @@ This is an accounts package for Meteor 1.2 to 1.6, using Drupal sessions transpa
 - Changes in the Drupal user account fields and roles reflects in real-time on connected Meteor applications.
 - No dependency on [Drupal DDP] nor any intervening `ddp.js` Node server.
 
+
 ## Requirements
 
-- Meteor 1.2.x, 1.3.x, 1.4.x, 1.5.x or 1.6.x
-- Drupal 8.0.x, 8.1.x, 8.2.x, 8.3.x or 8.4.x
+- Meteor 1.2.x to 1.6.x
+- Drupal 8.0.x to 8.4.x
 - The Drupal [meteor module] from FGM's Github, not to be confused with the existing [meteor sandbox] from drupal.org.
 - The cookie domain for the Meteor application *must* be the same or a subdomain of the Drupal site. This is a consequence of [cookie scope]. Using the same domain on different IP ports works.
+- If the Template package is present, Blaze helpers will be available, but it is 
+  no longer a requirement.
 
 [cookie scope]: https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
 [meteor module]: https://github.com/FGM/meteor
 [meteor sandbox]: https://www.drupal.org/sandbox/rgarand/2020935
 [Drupal DDP]: https://www.drupal.org/sandbox/bfodeke/2354859
+
 
 ### Updaters note
 
@@ -34,11 +38,14 @@ is no longer needed:
 The package now uses `rocketchat:streamer` instead, so you *should* remove this
 line to take advantage of the buffered writes present since Meteor 1.3.3.
 
+<!--
 # Running a demo
 # Configuring the package
 ## Drupal configuration
 ## Meteor configuration
 # Logging in and out
+-->
+
 # Running tests
 
 The package can be tested once added to an application. Note that the `test-packages` command needs a `--settings` argument like a normal application launch. This can be the example settings file from the package.

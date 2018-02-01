@@ -15,7 +15,6 @@ const coreDependencies = [
   'mongo',
   'random',
   'service-configuration',
-  'templating',
   'tracker',
   'underscore',
   'webapp'
@@ -40,6 +39,7 @@ Package.onUse(function (api) {
   api.versionsFrom('1.2.1');
 
   api.use(coreDependencies);
+  api.use(['templating'], { weak: true });
 
   api.use('rocketchat:streamer@0.5.0');
 
