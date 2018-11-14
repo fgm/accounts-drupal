@@ -92,7 +92,8 @@ DrupalBase = class DrupalBase {
         that.logger.debug(message);
         throw new that.match.Error(message);
       }
-      const VALUE_REGEXP = /^[\w_-]{32,128}$/i;
+      // @FIXME Temporary fix for SF4 handler emitting possibly short values.
+      const VALUE_REGEXP = /^[\w_-]{1,128}$/i;
       if (!VALUE_REGEXP.exec(checkedValue)) {
         const message = `Checked invalid cookie value ${checkedValue}.`;
         that.logger.debug(message);
