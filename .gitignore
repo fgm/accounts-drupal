@@ -6,3 +6,5 @@
 help/*.ps
 /node_modules
 settings.json
+package-lock.json
+yarn.lock

@@ -1,6 +1,6 @@
 # Accounts-drupal
 
-This is an accounts package for Meteor 1.2 to 1.7, using Drupal or pure Symfony
+This is an accounts package for Meteor 1.2 to 1.8, using Drupal or pure Symfony
 backend sessions transparently:
 
 - The Meteor app is configured to use a specific backend server for sessions
@@ -15,7 +15,7 @@ backend sessions transparently:
 
 ## Requirements
 
-- Meteor 1.2.x to 1.7.x
+- Meteor 1.2.x to 1.8.x
 - For the backend site: either Drupal 8.0.x to 8.6.x or Symfony 3.4.x or 4.x.
 - Either:
   - The Drupal [meteor module] from FGM's Github, not to be confused with the
