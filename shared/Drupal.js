@@ -3,6 +3,10 @@
  *   Contains the Drupal composite class.
  */
 
+import { DrupalBase } from "./DrupalBase";
+import { DrupalClient } from "../cl/DrupalClient";
+import { DrupalServer } from "../sv/DrupalServer";
+
 Log.debug('Defining shared/Drupal');
 
 /**
@@ -10,7 +14,7 @@ Log.debug('Defining shared/Drupal');
  *
  * @type {Drupal}
  */
-Drupal = class Drupal extends DrupalBase {
+class Drupal extends DrupalBase {
   constructor(meteor, log, client, server) {
     super(meteor, log);
     if (this.location === 'client') {
@@ -72,4 +76,8 @@ Drupal = class Drupal extends DrupalBase {
     this.logger.debug('Setting server to ' + (server ? server.constructor.name : 'null'));
     this.props.server = server;
   }
-};
+}
+
+export {
+  Drupal,
+}

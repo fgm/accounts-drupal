@@ -10,7 +10,7 @@ Log.debug('Defining shared/DrupalBase');
  *
  * @type {DrupalServer}
  */
-DrupalBase = class DrupalBase {
+class DrupalBase {
   /**
    * Constructor.
    *
@@ -221,4 +221,8 @@ DrupalBase = class DrupalBase {
   static get SERVICE_NAME() {
     return 'accounts-drupal';
   }
-};
+}
+
+export {
+  DrupalBase,
+}

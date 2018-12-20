@@ -3,14 +3,16 @@
  *   Contains the DrupalServer class.
  */
 
-Log.debug('Defining server/DrupalServer');
+Log.debug('Defining sv/DrupalServer');
+
+import { DrupalBase } from "../shared/DrupalBase";
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
  *
  * @type {DrupalServer}
  */
-DrupalServer = class DrupalServer extends DrupalBase {
+class DrupalServer extends DrupalBase {
   /**
    * Constructor.
    *
@@ -600,4 +602,8 @@ DrupalServer = class DrupalServer extends DrupalBase {
 
     return info;
   }
-};
+}
+
+export {
+  DrupalServer,
+}

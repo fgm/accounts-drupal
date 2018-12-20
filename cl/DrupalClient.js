@@ -3,14 +3,16 @@
  *   Contains the DrupalClient class.
  */
 
-Log.debug('Defining client/DrupalClient');
+import { DrupalBase } from "../shared/DrupalBase"
+
+Log.debug('Defining cl/DrupalClient');
 
 /**
  * The client-side class for the package.
  *
  * @type {DrupalClient}
  */
-DrupalClient = class DrupalClient extends DrupalBase {
+class DrupalClient extends DrupalBase {
   /**
    * Client constructor.
    *
@@ -340,4 +342,8 @@ DrupalClient = class DrupalClient extends DrupalBase {
     const roles = user ? this.user().profile[this.SERVICE_NAME].roles : ['anonymous user'];
     return roles;
   }
-};
+}
+
+export {
+  DrupalClient,
+}

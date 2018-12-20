@@ -3,12 +3,12 @@
  *   The configuration of accounts-drupal.
  */
 
-Log.debug('Defining server/DrupalConfiguration');
+Log.debug('Defining sv/DrupalConfiguration');
 
 /**
  * Configure the service from its settings.
  */
-DrupalConfiguration = class DrupalConfiguration {
+class DrupalConfiguration {
   /**
    * Constructor.
    *
@@ -84,6 +84,8 @@ DrupalConfiguration = class DrupalConfiguration {
 
     this.configurations.upsert(selector, serviceConfig);
   }
-};
+}
 
-export default DrupalConfiguration;
+export {
+  DrupalConfiguration,
+}
