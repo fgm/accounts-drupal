@@ -3,8 +3,6 @@
  *   Contains the DrupalServer class.
  */
 
-Log.debug('Defining sv/DrupalServer');
-
 import { DrupalBase } from "../shared/DrupalBase";
 
 /**
@@ -36,9 +34,10 @@ class DrupalServer extends DrupalBase {
    * @returns {DrupalServer}
    *   An unconfigured service instance.
    */
-  constructor(accounts, meteor, logger, match, stream, configuration, http, json) {
+  constructor(accounts, meteor, logger, match, webapp, stream, configuration, http, json) {
     super(meteor, logger, match, stream);
     this.accounts = accounts;
+    this.webapp = webapp;
     this.updatesCollection = this.getCollection(meteor);
     this.usersCollection = meteor.users;
     this.configuration = configuration;
@@ -191,6 +190,21 @@ class DrupalServer extends DrupalBase {
     }
 
     return cookieValue;
+  }
+
+  /**
+   * The controller for the web route used to notify the package about changes.
+   *
+   * @param {IncomingMessage} req
+   * @param {ServerResponse} res
+   */
+  handleUserEvent(req, res) {
+    res.writeHead(200);
+    res.end('Sent refresh request');
+
+    const remote = req.socket.remoteAddress;
+    this.logger.info(`Storing refresh request sent from ${remote}`);
+    this.storeUpdateRequest(req.query, req.socket.remoteAddress);
   }
 
   /**
@@ -348,6 +362,12 @@ class DrupalServer extends DrupalBase {
    */
   registerAutopublish() {
     this.accounts.addAutopublishFields(this.autopublishFields());
+  }
+
+  registerWebRoute() {
+    // This path must match the one in Drupal module at meteor/src/Notifier::PATH.
+    this.webapp.connectHandlers.use('/drupalUserEvent', this.handleUserEvent.bind(this));
+
   }
 
   /**

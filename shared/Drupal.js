@@ -7,8 +7,6 @@ import { DrupalBase } from "./DrupalBase";
 import { DrupalClient } from "../cl/DrupalClient";
 import { DrupalServer } from "../sv/DrupalServer";
 
-Log.debug('Defining shared/Drupal');
-
 /**
  * The shared class composing DrupalClient and DrupalServer.
  *
@@ -24,7 +22,7 @@ class Drupal extends DrupalBase {
       check(server, DrupalServer);
     }
     else {
-      throw new Meteor.Error('unknown-architecture', 'Trying to create Drupal class not on client or server.');
+      throw new meteor.Error('unknown-architecture', 'Trying to create Drupal class not on client or server.');
     }
 
     this.props = {};

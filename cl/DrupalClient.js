@@ -5,8 +5,6 @@
 
 import { DrupalBase } from "../shared/DrupalBase"
 
-Log.debug('Defining cl/DrupalClient');
-
 /**
  * The client-side class for the package.
  *
@@ -18,22 +16,22 @@ class DrupalClient extends DrupalBase {
    *
    * @param {AccountsClient} accounts
    *   The AccountsClient service.
-   * @param {Meteor} meteor
-   *   The Meteor global.
-   * @param {Log} logger
-   *   A Meteor logger service.
    * @param {IMatch} match
    *   The Meteor check matcher service.
-   * @param {Streamer} stream
-   *   The stream used by the package.
-   * @param {ITemplate} template
-   *   The Meteor Template service.
+   * @param {Meteor} meteor
+   *   The Meteor global.
    * @param {Random} random
    *   The Meteor random service (either node crrypto or browser crypto).
+   * @param {ITemplate} template
+   *   The Meteor Template service.
+   * @param {Streamer} stream
+   *   The stream used by the package.
+   * @param {Log} logger
+   *   A Meteor logger service.
    *
    * @constructor
    */
-  constructor(accounts, meteor, logger, match, stream, template, random) {
+  constructor(accounts, match, meteor, random, template, stream, logger) {
     super(meteor, logger, match, stream);
     this.accounts = accounts;
     this.call = (...args) => (meteor.call(...args));

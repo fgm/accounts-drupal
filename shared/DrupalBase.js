@@ -3,8 +3,6 @@
  *   Contains the DrupalBase class.
  */
 
-Log.debug('Defining shared/DrupalBase');
-
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
  *

@@ -2,8 +2,7 @@
  * @file
  *   The configuration of accounts-drupal.
  */
-
-Log.debug('Defining sv/DrupalConfiguration');
+import { _ } from "meteor/underscore";
 
 /**
  * Configure the service from its settings.
@@ -12,57 +11,56 @@ class DrupalConfiguration {
   /**
    * Constructor.
    *
-   * @param {String} name
-   *   The name of the service.
+   * @param {Meteor} meteor
+   * @param {Object} serviceConfiguration
+   * @param {Log} logger
    * @param {Object} settings
    *   Meteor settings.
-   * @param {Log} logger
-   *   The Log service.
-   * @param {Object} serviceConfiguration
-   *   The ServiceConfiguration service, from the service-configuration package.
+   * @param {String} name
+   *   The name of the service.
    *
    * @returns {DrupalConfiguration}
    *   A memory-only configuration instance.
    */
-  constructor(name, settings, logger, serviceConfiguration) {
+  constructor(meteor, serviceConfiguration, logger, settings, name) {
     this.service = name;
     this.logger = logger;
 
     if (_.isEmpty(settings)) {
-      throw new Meteor.Error('drupal-configuration', 'Settings are empty.');
+      throw new meteor.Error('drupal-configuration', 'Settings are empty.');
     }
 
     if (settings.public && settings.public[name] && typeof settings.public[name].autoLogin !== 'undefined') {
-      throw new Meteor.Error('drupal-configuration', 'Settings contain obsolete autoLogin field.');
+      throw new meteor.Error('drupal-configuration', 'Settings contain obsolete autoLogin field.');
     }
 
     const serverSettings = settings[this.service];
     if (typeof serverSettings === 'undefined') {
-      throw new Meteor.Error('drupal-configuration', `Settings are missing a ${name} root key.`);
+      throw new meteor.Error('drupal-configuration', `Settings are missing a ${name} root key.`);
     }
 
     const clientSettings = settings.public[this.service];
     if (typeof clientSettings === 'undefined') {
-      throw new Meteor.Error('drupal-configuration', `Settings are missing a ${name} public key.`);
+      throw new meteor.Error('drupal-configuration', `Settings are missing a ${name} public key.`);
     }
     let backgroundLogin = clientSettings.backgroundLogin;
     if (typeof backgroundLogin === 'undefined') {
-      throw new Meteor.Error('drupal-configuration', `Settings are missing a ${name}/backgroundLogin public key.`);
+      throw new meteor.Error('drupal-configuration', `Settings are missing a ${name}/backgroundLogin public key.`);
     }
 
-    this.site = serverSettings.site || 'http://d8.fibo.dev';
+    this.site = serverSettings.site || 'http://localhost';
     this.appToken = serverSettings.appToken || 'invalid-token';
     this.rootFields = serverSettings.rootFields || ['profile'];
 
     this.configurations = serviceConfiguration.configurations;
 
     if (!serviceConfiguration.ConfigError || serviceConfiguration.ConfigError.prototype.name !== 'ServiceConfiguration.ConfigError') {
-      throw new Meteor.Error('drupal-configuration', 'Invalid service-configuration: invalid ConfigError.');
+      throw new meteor.Error('drupal-configuration', 'Invalid service-configuration: invalid ConfigError.');
     }
 
     // Ensure configurations looks usable.
-    if (!typeof this.configurations === 'object' || _.isEmpty(this.configurations)) {
-      throw new ServiceConfiguration.ConfigError(name);
+    if (typeof this.configurations !== 'object' || _.isEmpty(this.configurations)) {
+      throw new serviceConfiguration.ConfigError(name);
     }
   }
 
@@ -70,17 +68,17 @@ class DrupalConfiguration {
    * Update the stored configuration from the current instance.
    *
    * @param {String} name
-   *   The name of the Drupa login service.
+   *   The name of the Drupal login service.
    *
    * @return {void}
    */
   persist(name) {
     const selector = { service: name };
-    const serviceConfig = _.extend(_.clone(selector), {
+    const serviceConfig = { ...selector,
       appToken: this.appToken,
       rootFields: this.rootFields,
       site: this.site
-    });
+    };
 
     this.configurations.upsert(selector, serviceConfig);
   }
