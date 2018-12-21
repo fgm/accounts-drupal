@@ -8,6 +8,11 @@
  * - it stores a Drupal instance as the "drupal" global.
  */
 
+import { Accounts } from "meteor/accounts-base";
+import { Match } from "meteor/match";
+import { Meteor } from "meteor/meteor";
+import { Random } from "meteor/random";
+
 import { Drupal } from "../shared/Drupal";
 import { makeClient } from "./makeClient";
 
@@ -37,21 +42,18 @@ const onLoginFactory = (logger, client) => {
  *
  * That function builds a client instance and exposes it as the "drupal" global.
  *
- * @param {Accounts} accounts
- * @param {Match} match
- * @param {Meteor} meteor
- * @param {Random} random
- * @param {Template|null} template
  * @param {Log} logger
  *   A Log-compatible logger.
+ * @param {Template|null} template
+ *   The Template service, or null when not using Blaze.
  *
  * @return {void}
  */
-const onStartup = (accounts, match, meteor, random, template, logger) => {
+const onStartup = (logger, template = null) => {
   logger.debug('Client startup');
 
-  const client = makeClient(accounts, match, meteor, random, template, logger);
-  window.drupal = new Drupal(meteor, logger, client, null);
+  const client = makeClient(Accounts, Match, Meteor, Random, template, logger);
+  window.drupal = new Drupal(Meteor, logger, client, null);
 
   /**
    * Need to wrap client.login in a closure to avoid overwriting this in
@@ -62,7 +64,7 @@ const onStartup = (accounts, match, meteor, random, template, logger) => {
    *
    * @return {void}
    */
-  meteor.loginWithDrupal = onLoginFactory(logger, client);
+  Meteor.loginWithDrupal = onLoginFactory(logger, client);
 };
 
 export {

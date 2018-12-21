@@ -10,6 +10,13 @@
  * - it stores a Drupal instance as the "drupal" global.
  */
 
+import { Accounts } from "meteor/accounts-base";
+import { HTTP } from "meteor/http";
+import { Match } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+import { ServiceConfiguration } from "meteor/service-configuration";
+import { WebApp } from "meteor/webapp";
+
 import { Drupal } from "../shared/Drupal";
 import { makeServer } from "./makeServer";
 
@@ -18,13 +25,6 @@ import { makeServer } from "./makeServer";
  *
  * That function builds a server instance and exposes it as the "drupal" global.
  *
- * @param {JSON} json
- * @param {Accounts} accounts
- * @param {HTTP} http
- * @param {Match} match
- * @param {Meteor} meteor
- * @param {ServiceConfiguration} serviceConfiguration
- * @param {WebApp} webapp
  * @param {Log} logger
  *   A Log-compatible logger.
  * @param {object} settings
@@ -32,11 +32,11 @@ import { makeServer } from "./makeServer";
  *
  * @return {void}
  */
-const onStartup = (json, accounts, http, match, meteor, serviceConfiguration, webapp, logger, settings) => {
+const onStartup = (logger, settings) => {
   logger.debug('Server startup');
 
-  const server = makeServer(json, accounts, http, match, meteor, serviceConfiguration, webapp, logger, settings);
-  global.drupal = new Drupal(meteor, logger, null, server);
+  const server = makeServer(JSON, Accounts, HTTP, Match, Meteor, ServiceConfiguration, WebApp, logger, settings);
+  global.drupal = new Drupal(Meteor, logger, null, server);
 };
 
 export {
