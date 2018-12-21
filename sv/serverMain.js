@@ -10,11 +10,11 @@
  * - it stores a Drupal instance as the "drupal" global.
  */
 
-import {Drupal} from "../shared/Drupal";
-import {makeServer} from "./makeServer";
+import { Drupal } from "../shared/Drupal";
+import { makeServer } from "./makeServer";
 
 /**
- * onStartupFactory returns a Meteor.startup() argument function.
+ * A Meteor.startup() argument function.
  *
  * That function builds a server instance and exposes it as the "drupal" global.
  *
@@ -30,26 +30,16 @@ import {makeServer} from "./makeServer";
  * @param {object} settings
  *   Meteor settings containing configuration for accounts-drupal.
  *
- * @return {onStartup}
- *   A function suitable to pass Meteor.startup().
+ * @return {void}
  */
-const onStartupFactory = (json, accounts, http, match, meteor, serviceConfiguration, webapp, logger, settings) => {
-  /**
-   * A Meteor.startup() argument function
-   *
-   * @return {void}
-   */
-  const onStartup = () => {
-    logger.debug('Server startup');
+const onStartup = (json, accounts, http, match, meteor, serviceConfiguration, webapp, logger, settings) => {
+  logger.debug('Server startup');
 
-    const server = makeServer(json, accounts, http, match, meteor, serviceConfiguration, webapp, logger, settings);
-    global.drupal = new Drupal(meteor, logger, null, server);
-  };
-
-  return onStartup;
+  const server = makeServer(json, accounts, http, match, meteor, serviceConfiguration, webapp, logger, settings);
+  global.drupal = new Drupal(meteor, logger, null, server);
 };
 
 export {
   Drupal,
-  onStartupFactory,
-}
+  onStartup,
+};
