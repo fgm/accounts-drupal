@@ -3,14 +3,12 @@
  *   Contains the DrupalBase class.
  */
 
-Log.debug('Defining shared/DrupalBase');
-
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
  *
  * @type {DrupalServer}
  */
-DrupalBase = class DrupalBase {
+class DrupalBase {
   /**
    * Constructor.
    *
@@ -221,4 +219,8 @@ DrupalBase = class DrupalBase {
   static get SERVICE_NAME() {
     return 'accounts-drupal';
   }
-};
+}
+
+export {
+  DrupalBase,
+}

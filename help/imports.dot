@@ -1,0 +1,22 @@
+digraph imports {
+  rankdir = TD;
+  node [ shape=none];
+
+  client_clientBoot -> client_DrupalClient;
+  client_clientMain -> shared_DrupalBase;
+  client_clientMain -> shared_Drupal;
+  client_clientMain -> client_clientBoot;
+
+  server_DrupalConfiguration;
+  server_DrupalServer -> shared_DrupalBase;
+  server_serverBoot -> shared_DrupalBase;
+  server_serverBoot -> server_DrupalConfiguration;
+  server_serverBoot -> server_DrupalServer;
+  server_serverMain -> shared_DrupalBase;
+  server_serverMain -> shared_Drupal;
+  server_serverMain -> server_serverBoot;
+
+  shared_Drupal -> shared_DrupalBase;
+  shared_Drupal -> client_DrupalClient
+  shared_Drupal -> server_DrupalServer;
+}

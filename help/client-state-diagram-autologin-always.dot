@@ -27,7 +27,7 @@ digraph login {
 
 	// Edges
 	edge [ color=blue, fontsize= 8 ];
-	idle_anon -> on_anon		[ label="clientBoot:\nnew DrupalClient()" ];
+	idle_anon -> on_anon		[ label="makeClient:\nnew DrupalClient()" ];
 	on_anon -> cookies			[ label="Login | Refresh\nclientStartup" ];
 	on_anon -> on_anon			[ label="Logout" ];
 	on_anon -> idle_anon			[ label="Delete" ];

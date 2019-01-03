@@ -3,14 +3,16 @@
  *   Contains the Drupal composite class.
  */
 
-Log.debug('Defining shared/Drupal');
+import { DrupalBase } from "./DrupalBase";
+import { DrupalClient } from "../cl/DrupalClient";
+import { DrupalServer } from "../sv/DrupalServer";
 
 /**
  * The shared class composing DrupalClient and DrupalServer.
  *
  * @type {Drupal}
  */
-Drupal = class Drupal extends DrupalBase {
+class Drupal extends DrupalBase {
   constructor(meteor, log, client, server) {
     super(meteor, log);
     if (this.location === 'client') {
@@ -20,7 +22,7 @@ Drupal = class Drupal extends DrupalBase {
       check(server, DrupalServer);
     }
     else {
-      throw new Meteor.Error('unknown-architecture', 'Trying to create Drupal class not on client or server.');
+      throw new meteor.Error('unknown-architecture', 'Trying to create Drupal class not on client or server.');
     }
 
     this.props = {};
@@ -72,4 +74,8 @@ Drupal = class Drupal extends DrupalBase {
     this.logger.debug('Setting server to ' + (server ? server.constructor.name : 'null'));
     this.props.server = server;
   }
-};
+}
+
+export {
+  Drupal,
+}

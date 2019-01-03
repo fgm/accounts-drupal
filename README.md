@@ -1,6 +1,6 @@
 # Accounts-drupal
 
-This is an accounts package for Meteor 1.2 to 1.8, using Drupal or pure Symfony
+This is an accounts package for Meteor 1.8, using Drupal or pure Symfony
 backend sessions transparently:
 
 - The Meteor app is configured to use a specific backend server for sessions
@@ -15,14 +15,15 @@ backend sessions transparently:
 
 ## Requirements
 
-- Meteor 1.2.x to 1.8.x
-- For the backend site: either Drupal 8.0.x to 8.6.x or Symfony 3.4.x or 4.x.
-- Either:
-  - The Drupal [meteor module] from FGM's Github, not to be confused with the
-    existing [meteor sandbox] from drupal.org.
-  - Equivalent support in a Symfony backend. Such existing code is currently
-    only available as proprietary. The issue for an Open Source version is
-    https://github.com/fgm/meteor/issues/8
+- Meteor 1.8.x. 
+  - Use the latest 0.3.x version of the package to support Meteor 1.2 to 1.7.
+- For the backend site: 
+  - either Drupal 8.0.x to 8.6.x, with the Drupal [meteor module] from FGM's 
+    Github, not to be confused with the existing [meteor sandbox] from 
+    drupal.org. 
+  - or Symfony 3.4.x or 4.x, with equivalent support in a Symfony backend. Such
+    existing code is currently only available as proprietary. The issue for an
+    Open Source version is https://github.com/fgm/meteor/issues/8
 - The cookie domain for the Meteor application *must* be the same or a subdomain
   of the backend site. This is a consequence of [cookie scope]. Using the same
   domain on different IP ports works, as long as the backend cookies settings:
@@ -38,7 +39,46 @@ backend sessions transparently:
 [Drupal DDP]: https://www.drupal.org/sandbox/bfodeke/2354859
 
 
-### Updaters note after package version 0.2.6
+## Adding the package to your application
+
+The package needs to be added to both the client and server parts of your Meteor
+application. Assuming you defined a `logger` instance of a Meteor-compatible 
+logger component like [filog] for both sides, the setup looks like:
+
+[filog]: https://npmjs.org/filog
+
+```ecmascript 6
+// (app)/package.json
+// ...
+  "meteor": {
+    "mainModule": {
+      "client": "imports/client/main.js",
+      "server": "imports/server/main.js"
+    }
+  },
+// ...
+```
+
+```ecmascript 6
+// (app)/imports/client/main.js
+
+Meteor.startup(() => {
+  // Configure a logger instance, then...
+  onStartup(logger, Meteor.settings.public);
+));
+```
+
+```ecmascript 6
+// (app)/imports/server/main.js
+
+Meteor.startup(() => {
+  // Configure a logger instance, then...
+  onStartup(logger, Meteor.settings);
+});
+```
+
+
+## Updaters note after package version 0.2.6
 
 If you disabled update buffering on the client using code like the fragment
 below to support Meteor 1.3.3 and later with earlier versions of this package

@@ -1,4 +1,4 @@
-import DrupalConfiguration from './DrupalConfiguration';
+import { DrupalConfiguration } from './DrupalConfiguration';
 
 const SERVICE_NAME = 'mock-service';
 
@@ -22,7 +22,7 @@ Tinytest.add('Testing correct configuration', function (test) {
   const settings = mockSettings(SERVICE_NAME);
   settings.public[SERVICE_NAME] = { backgroundLogin: 60 };
 
-  let f = new DrupalConfiguration(SERVICE_NAME, settings, Log, ServiceConfiguration);
+  let f = new DrupalConfiguration(Meteor, ServiceConfiguration, Log, settings, SERVICE_NAME);
 
   test.equal('DrupalConfiguration', f.constructor.name);
 });
@@ -34,7 +34,7 @@ Tinytest.add('Testing incorrect configuration', function (test) {
 
   // Null settings.
   instantiation = function () {
-    return new DrupalConfiguration(SERVICE_NAME, null, Log, configuration);
+    return new DrupalConfiguration(Meteor, configuration, Log, null, SERVICE_NAME);
   };
   test.throws(instantiation, function (e) {
     return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
@@ -42,7 +42,7 @@ Tinytest.add('Testing incorrect configuration', function (test) {
 
   // Empty non-null settings.
   instantiation = function () {
-    return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
+    return new DrupalConfiguration(Meteor, configuration, Log, settings, SERVICE_NAME);
   };
   test.throws(instantiation, function (e) {
     return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
@@ -53,7 +53,7 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   settings.public = {};
   settings.public[SERVICE_NAME] = { autoLogin: true };
   instantiation = function () {
-    return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
+    return new DrupalConfiguration(Meteor, configuration, Log, settings, SERVICE_NAME);
   };
   test.throws(instantiation, function (e) {
     return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
@@ -63,7 +63,7 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   settings[SERVICE_NAME] = {};
   settings.public = {};
   instantiation = function () {
-    return new DrupalConfiguration(SERVICE_NAME, settings, Log, configuration);
+    return new DrupalConfiguration(Meteor, configuration, Log, settings, SERVICE_NAME);
   };
   test.throws(instantiation, function (e) {
     return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';

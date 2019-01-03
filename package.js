@@ -1,15 +1,13 @@
 /**
  * @file
  *   Package description file for accounts-drupal.
- *
- * Note: package.js is NOT passed to Babel on Meteor 1.2-1.8, so no ES6.
  */
 
 // Dependencies.
 const coreDependencies = [
-  'ecmascript',
   'accounts-base',
   'check',
+  'ecmascript',
   'http',
   'logging',
   'mongo',
@@ -22,69 +20,38 @@ const coreDependencies = [
 
 Package.describe({
   name: 'fgm:accounts-drupal',
-  version: '0.3.6',
-  summary: 'A Meteor 1.2 to 1.8 accounts system using Drupal 8 or Symfony sessions.',
-  git: 'https://github.com/FGM/accounts-drupal',
+  version: '0.4.0',
+  summary: 'A Meteor 1.8 accounts system using cookie-based login on a Drupal 8 or Symfony server.',
+  git: 'https://github.com/fgm/accounts-drupal',
   documentation: 'README.md'
 });
 
-Package.onUse(function (api) {
-  function files(location, names) {
+Package.onUse(api => {
+  const files = (location, names) => {
     const base = location + '/';
     return names.map(function (v) {
       return base + v + '.js';
     });
-  }
+  };
 
-  api.versionsFrom('1.2.1');
+  api.versionsFrom('1.8');
 
   api.use(coreDependencies);
-  api.use(['templating'], { weak: true });
+  api.use(['templating@1.3.2'], { weak: true });
 
+  // TODO update for rocketchat:streamer@^1.0.1
   api.use('rocketchat:streamer@0.5.0');
 
-  const sharedPre = [
-    'DrupalBase',
-    'sharedBootPre'
-  ];
-
-  const clientOnly = [
-    'DrupalClient',
-    'clientBoot',
-    'clientStartup'
-  ];
-
-  const serverOnly = [
-    'DrupalConfiguration',
-    'DrupalServer',
-    'serverBoot',
-    'serverStartup'
-  ];
-
-  const sharedPost = [
-    'Drupal',
-    'sharedBootPost',
-    'sharedStartup'
-  ];
-
-  // Package files.
-  api.addFiles(files('shared', sharedPre), ['client', 'server']);
-  api.addFiles(files('client', clientOnly), 'client');
-  api.addFiles(files('server', serverOnly), 'server');
-  api.addFiles(files('shared', sharedPost), ['client', 'server']);
-
-  // Public symbols.
-  // - An instance of Drupal.
-  api.export(['drupal', 'Drupal']);
+  // Do NOT use "client" and "server" directory names to avoid losing the 1.8 bundler.
+  api.mainModule('cl/clientMain.js', 'client');
+  api.mainModule('sv/serverMain.js', 'server');
 });
 
-
-Package.onTest(function (api) {
+Package.onTest(api => {
   api.use(coreDependencies);
   api.use('tinytest');
   api.use('fgm:accounts-drupal');
-  api.use('mongo');
 
-  api.addFiles('server/DrupalConfiguration.js', 'server');
-  api.addFiles('server/serverTests.js', 'server');
+  api.addFiles('sv/DrupalConfiguration.js', 'server');
+  api.addFiles('sv/serverTests.js', 'server');
 });
