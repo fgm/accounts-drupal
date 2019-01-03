@@ -28,10 +28,12 @@ class DrupalClient extends DrupalBase {
    *   The stream used by the package.
    * @param {Log} logger
    *   A Meteor logger service.
+   * @param {Object} publicSettings
+   *   The public portion of Meteor.settings.
    *
    * @constructor
    */
-  constructor(accounts, match, meteor, random, template, stream, logger) {
+  constructor(accounts, match, meteor, random, template, stream, logger, publicSettings) {
     super(meteor, logger, match, stream);
     this.accounts = accounts;
     this.call = (...args) => (meteor.call(...args));
@@ -83,7 +85,7 @@ class DrupalClient extends DrupalBase {
     this.user = meteor.user.bind(this);
 
     // - Merge public settings to instance.
-    Object.assign(this.settings.client, meteor.settings.public[this.SERVICE_NAME]);
+    Object.assign(this.settings.client, publicSettings[this.SERVICE_NAME]);
 
     meteor.call('accounts-drupal.initState', (err, res) => {
       if (err) {

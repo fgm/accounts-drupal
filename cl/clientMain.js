@@ -9,7 +9,7 @@
  */
 
 import { Accounts } from "meteor/accounts-base";
-import { Match } from "meteor/match";
+import { Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 
@@ -44,15 +44,17 @@ const onLoginFactory = (logger, client) => {
  *
  * @param {Log} logger
  *   A Log-compatible logger.
+ * @param {Object} settings
+ *   The public portion of Meteor.settings.
  * @param {Template|null} template
  *   The Template service, or null when not using Blaze.
  *
  * @return {void}
  */
-const onStartup = (logger, template = null) => {
+const onStartup = (logger, settings, template = null) => {
   logger.debug('Client startup');
 
-  const client = makeClient(Accounts, Match, Meteor, Random, template, logger);
+  const client = makeClient(Accounts, Match, Meteor, Random, template, logger, settings);
   window.drupal = new Drupal(Meteor, logger, client, null);
 
   /**
