@@ -3,7 +3,7 @@
 ## Events and hooks
 
 The module implements the choices listed in the following table of user-related
-events notified by the [Meteor module] for Drupal 8.
+events notified by the [Meteor module] for Drupal 8 and similar servers.
 
 [Meteor module]: https://github.com/FGM/meteor
 
