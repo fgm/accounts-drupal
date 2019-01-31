@@ -31,6 +31,8 @@ const onLoginFactory = (logger, client) => {
       // Attempt login if a cookie exists, logout otherwise.
       // XXX Consider taking a callback from the application here.
       client.login(document.cookie, callback);
+    } else if (_.isFunction(callback)) {
+      callback(new Meteor.Error("No cookie: cannot login"), null);
     }
   };
 
