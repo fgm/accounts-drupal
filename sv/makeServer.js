@@ -68,7 +68,7 @@ const makeServer = (json, accounts, http, match, meteor, serviceConfiguration, w
     server.registerWebRoute();
     logger.debug('HTTP routes bound.');
 
-    logger.debug('Accounts-drupal configured');
+    logger.debug(`${DrupalBase.SERVICE_NAME} login service configured`);
   }
   catch (e) {
     // Do not return an apparently usable instance if an exception occurred.

@@ -8,6 +8,8 @@ import util from "util";
 
 import { DrupalBase } from "../shared/DrupalBase";
 
+const SERVICE_NAME = DrupalBase.SERVICE_NAME;
+
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
  *
@@ -51,8 +53,8 @@ class DrupalServer extends DrupalBase {
     this.setupUpdatesObserver();
 
     // - Merge Meteor settings to instance.
-    Object.assign(this.settings.server, meteor.settings[DrupalBase.SERVICE_NAME]);
-    Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
+    Object.assign(this.settings.server, meteor.settings[SERVICE_NAME]);
+    Object.assign(this.settings.client, meteor.settings.public[SERVICE_NAME]);
 
     // - Initialize Drupal-dependent state.
     this.state = this.initStateMethod(true);
@@ -131,7 +133,7 @@ class DrupalServer extends DrupalBase {
     const totalSubscriptionCount = this.stream.subscriptions.length;
     const eventSubscriptions = this.stream.subscriptionsByEventName[this.EVENT_NAME];
     const eventSubscriptionCount = eventSubscriptions ? eventSubscriptions.length : 0;
-    this.logger.info(`emitting ${action}(${userId}) to ${eventSubscriptionCount} subscription for ${this.EVENT_NAME}, out of ${totalSubscriptionCount} overall subscriptions\n`);
+    this.logger.info(`Emitting ${action}(${userId}) to ${eventSubscriptionCount} subscription for ${this.EVENT_NAME}, out of ${totalSubscriptionCount} overall subscriptions\n`);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
 
@@ -263,14 +265,14 @@ class DrupalServer extends DrupalBase {
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
     const cookies = loginRequest[NAME];
-    let loginResult = this.loginCheck(cookies, 'Login not handled.', false);
+    let loginResult = this.loginCheck(cookies, `Login not handled by ${SERVICE_NAME}.`, false);
     if (loginResult) {
       return loginResult;
     }
 
     this.logger.debug({
       app: NAME,
-      message: 'Drupal login attempt',
+      message: `${SERVICE_NAME} login attempt`,
       cookies
     });
 
@@ -471,7 +473,7 @@ class DrupalServer extends DrupalBase {
         break;
 
       default:
-        this.logger.warn('Observed unsupported event type ' + doc.event);
+        this.logger.warn(`Observed unsupported event type ${doc.event}`);
         break;
     }
   }

@@ -5,6 +5,8 @@
 
 import { DrupalBase } from "../shared/DrupalBase"
 
+const SERVICE_NAME = DrupalBase.SERVICE_NAME;
+
 /**
  * The client-side class for the package.
  *
@@ -123,7 +125,7 @@ class DrupalClient extends DrupalBase {
    * @returns {Object}
    *   A cookie-name:cookie-value hash.
    */
-  cookies(cookie) {
+  candidateCookies(cookie) {
     check(cookie, String);
     let asArray = cookie.split(';');
     let result = {};
@@ -177,7 +179,7 @@ class DrupalClient extends DrupalBase {
    */
   login(cookie, callback = null) {
     let logArg = { app: this.SERVICE_NAME };
-    const cookies = this.cookies(cookie);
+    const cookies = this.candidateCookies(cookie);
 
     if (_.isEmpty(cookies)) {
       let message;
@@ -209,12 +211,12 @@ class DrupalClient extends DrupalBase {
       // because it happens in a loop. Do NOT remove that property.
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: 'Not logged-in on Drupal.' }));
+          this.logger.warn(Object.assign(logArg, { message: `Not logged-in with ${SERVICE_NAME}` }));
           this.logout();
         }
         else {
           this.backgroundLoginEnable();
-          this.logger.debug(Object.assign(logArg, { message: 'Logged-in on Drupal.' }));
+          this.logger.debug(Object.assign(logArg, { message: `Logged-in with ${SERVICE_NAME}` }));
         }
         if (_.isFunction(callback)) {
           callback(err, res);

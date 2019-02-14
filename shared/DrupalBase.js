@@ -87,14 +87,13 @@ class DrupalBase {
       const NAME_REGEXP = /^SESS[0-9A-F]{32}$/i;
       if (!NAME_REGEXP.exec(checkedName)) {
         const message = `Checked invalid cookie name ${checkedName}.`;
-        that.logger.debug(message);
         throw new that.match.Error(message);
       }
       // @FIXME Temporary fix for SF4 handler emitting possibly short values.
       const VALUE_REGEXP = /^[\w_-]{1,128}$/i;
       if (!VALUE_REGEXP.exec(checkedValue)) {
         const message = `Checked invalid cookie value ${checkedValue}.`;
-        that.logger.debug(message);
+        that.logger.warn(message);
         throw new that.match.Error(message);
       }
       return true;

@@ -33,7 +33,7 @@ const makeClient = (accounts, match, meteor, random, template, logger, settings)
     );
 
     // Register the package ? Nothing to do client-side.
-    logger.debug('Accounts-drupal configured');
+    logger.debug(`${DrupalBase.SERVICE_NAME} service configured`);
   }
   catch (e) {
     // Do not return an apparently usable instance if an exception occurred.
