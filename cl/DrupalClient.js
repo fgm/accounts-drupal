@@ -271,8 +271,7 @@ class DrupalClient extends DrupalBase {
    * @see DrupalServer.observe()
    */
   onRefresh(event, userId) {
-    this.logger.info('Automatic login status update: ' + event + '(' + userId + ')');
-    // this.login(document.cookie);
+    this.logger.debug('Automatic login status update: ' + event + '(' + userId + ')');
     switch (event) {
       case 'anonymous':
         if (!this.user()) {
