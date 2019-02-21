@@ -27,7 +27,7 @@ import { makeClient } from "./makeClient";
 const onLoginFactory = (logger, client) => {
   const onLogin = (callback) => {
     if (document.cookie) {
-      logger.info("Cookies exist, attempting Drupal login");
+      logger.debug("Cookies exist, attempting Drupal login");
       // Attempt login if a cookie exists, logout otherwise.
       // XXX Consider taking a callback from the application here.
       client.login(document.cookie, callback);

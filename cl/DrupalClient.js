@@ -292,7 +292,7 @@ class DrupalClient extends DrupalBase {
         break;
 
       default:
-        this.logger.info(`Received unknown event ${event}(${userId}): ignored`);
+        this.logger.warn(`Received unknown event ${event}(${userId}): ignored`);
         break;
     }
   }

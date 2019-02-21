@@ -3,6 +3,9 @@
  *   Contains the DrupalServer class.
  */
 
+import nodeUrl from "url";
+import util from "util";
+
 import { DrupalBase } from "../shared/DrupalBase";
 
 /**
@@ -125,7 +128,10 @@ class DrupalServer extends DrupalBase {
    * @returns {void}
    */
   emit(action, userId = 0) {
-    this.logger.debug('emitting', action, userId);
+    const totalSubscriptionCount = this.stream.subscriptions.length;
+    const eventSubscriptions = this.stream.subscriptionsByEventName[this.EVENT_NAME];
+    const eventSubscriptionCount = eventSubscriptions ? eventSubscriptions.length : 0;
+    this.logger.info(`emitting ${action}(${userId}) to ${eventSubscriptionCount} subscription for ${this.EVENT_NAME}, out of ${totalSubscriptionCount} overall subscriptions\n`);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
 
@@ -203,7 +209,10 @@ class DrupalServer extends DrupalBase {
     res.end('Sent refresh request');
 
     const remote = req.socket.remoteAddress;
-    this.logger.info(`Storing refresh request sent from ${remote}`);
+    // The url property on IncomingMessage only contains the unmatched part.
+    const parsed = nodeUrl.parse(req.url, true);
+    const query = util.inspect(parsed.query);
+    this.logger.info(`Storing refresh request sent from ${remote}: ${parsed.pathname} with query ${query}`);
     this.storeUpdateRequest(req.query, req.socket.remoteAddress);
   }
 
@@ -567,10 +576,10 @@ class DrupalServer extends DrupalBase {
    */
   userDelete(rawUserId) {
     const userId = parseInt(rawUserId, 10);
-    this.logger.info(`User ${userId} was deleted.`);
     this.usersCollection.remove({
       'services.accounts-drupal.public.uid': userId
     });
+    this.logger.info(`User ${userId} was deleted.`);
   }
 
   /**
@@ -600,7 +609,7 @@ class DrupalServer extends DrupalBase {
     let options = Object.assign(defaultOptions, settingsOptions);
     let info;
 
-    this.logger.info(`Checking ${cookieName}=${cookieValue} on ${url}.`);
+    this.logger.debug(`Checking ${cookieName}=${cookieValue} on ${url}.`);
     let t0 = +new Date();
     let t1 = t0;
     try {
@@ -608,7 +617,7 @@ class DrupalServer extends DrupalBase {
       t1 = +new Date();
       info = this.json.parse(ret.content);
       info.uid = parseInt(info.uid, 10);
-      this.logger.info(`Success: ${t1 - t0} msec later: ${this.json.stringify(info)}.`);
+      this.logger.info(`Whoami success in ${t1 - t0} msec: ${this.json.stringify(info)}.`);
     }
     catch (err) {
       info = {
@@ -617,7 +626,7 @@ class DrupalServer extends DrupalBase {
         'roles': []
       };
       t1 = +new Date();
-      this.logger.error(`Error: ${err.message} in ${t1 - t0} msec.`);
+      this.logger.error(`Whoami error in ${t1 - t0} msec: ${err.message}.`);
     }
 
     return info;
