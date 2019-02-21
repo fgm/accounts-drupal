@@ -24,7 +24,8 @@ class DrupalBase {
    * Notice that the returned instance has asynchronous behavior: its state
    * component will only be initialized once the server callback has returned,
    * which will almost always be some milliseconds after the instance itself is
-   * returned: check this.state.online to ensure the connection attempts is done:
+   * returned: check this.state.online to ensure the connection attempts is
+   *   done:
    * - undefined -> null
    * - false -> failed, values are defaults,
    * - true -> succeeded,valuers are those provided by the server.
@@ -61,45 +62,34 @@ class DrupalBase {
   /**
    * Perform a check() on a cookie for Drupal 8 plausibility.
    *
-   * Where checks like this should throw instead of returning false: in Meteor
-   * 1.2.* and 1.3 <= beta5, testSubtree() runs the check a second time if it
-   * returned instead of throwing. Look for "if (pattern instanceof Where) {" in
-   * match.js#testSubtree() for details.
+   * Unlike versions < 0.4.2, this is no longer a Match.Where function.
    *
-   * @see testSubtree()
-   *
-   * @see \Drupal\Component\Utility\Crypt::randomBytesBase64().
+   * @see \Drupal\Component\Utility\Crypt::randomBytesBase64()
    *
    * @param {String} name
    *   The cookie name.
    * @param {String} value
    *   The cookie value (id).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    *   Did plausibility checks pass ?
    */
   checkCookie(name, value) {
-    // Unlike a fat arrow function, Match.Where redefines this.
-    let that = this;
-    const plausibleCookie = this.match.Where(function ({ name: checkedName, value: checkedValue }) {
-      check(checkedName, String);
-      check(checkedValue, String);
-      const NAME_REGEXP = /^SESS[0-9A-F]{32}$/i;
-      if (!NAME_REGEXP.exec(checkedName)) {
-        const message = `Checked invalid cookie name ${checkedName}.`;
-        throw new that.match.Error(message);
-      }
-      // @FIXME Temporary fix for SF4 handler emitting possibly short values.
-      const VALUE_REGEXP = /^[\w_-]{1,128}$/i;
-      if (!VALUE_REGEXP.exec(checkedValue)) {
-        const message = `Checked invalid cookie value ${checkedValue}.`;
-        that.logger.warn(message);
-        throw new that.match.Error(message);
-      }
-      return true;
-    });
+    if (typeof name !== 'string' || typeof value !== 'string') {
+      return false;
+    }
+    const NAME_REGEXP = /^SESS[0-9A-F]{32}$/i;
+    if (!NAME_REGEXP.exec(name)) {
+      return false;
+    }
+    // @FIXME Temporary fix for SF4 handler emitting possibly short values.
+    const VALUE_REGEXP = /^[\w_-]{1,128}$/i;
+    if (!VALUE_REGEXP.exec(value)) {
+      this.logger.warn(`Checked invalid cookie value ${value}.`);
+      return false;
+    }
 
-    check({ name, value }, plausibleCookie);
+    return true;
   }
 
   /**
@@ -111,7 +101,8 @@ class DrupalBase {
    *
    * @returns {Object}
    *   - cookieName: the name of the session cookie used by the site.
-   *   - anonymousName: the name of the anonymous user to use when not logged in.
+   *   - anonymousName: the name of the anonymous user to use when not logged
+   *   in.
    *   - online: site was available at last check.
    */
   initStateMethod(refresh = false) {

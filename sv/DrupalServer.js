@@ -277,7 +277,7 @@ class DrupalServer extends DrupalBase {
     });
 
     // Shortcut: avoid WS call if Drupal is not available.
-    loginResult = this.loginCheck(this.state.online, 'Drupal server is not online.');
+    loginResult = this.loginCheck(this.state.online, 'Drupal server is not online.', true);
     if (loginResult) {
       return loginResult;
     }
@@ -285,23 +285,17 @@ class DrupalServer extends DrupalBase {
     // Shortcut: avoid WS call if cookie name is not the expected one.
     const cookieName = this.state.cookieName;
     const cookieValue = cookies[cookieName];
-    loginResult = this.loginCheck(cookieValue, 'No cookie matches Drupal session name.');
+    loginResult = this.loginCheck(cookieValue, 'No cookie matches Drupal session name.', false);
     if (loginResult) {
       return loginResult;
     }
 
     // Shortcut: avoid WS call if cookie value is malformed.
-    try {
-      // Never forget to check tainted data like these.
-      this.checkCookie(cookieName, cookieValue);
-    }
-    catch (e) {
-      let expectedException = e instanceof Match.Error;
-      loginResult = this.loginCheck(expectedException, 'Malformed session cookie');
-      if (loginResult) {
-        return loginResult;
-      }
-      throw e;
+    // Never forget to check tainted data like these.
+    const cookieIsPlausible = this.checkCookie(cookieName, cookieValue);
+    loginResult = this.loginCheck(cookieIsPlausible, 'Malformed session cookie', false);
+    if (loginResult) {
+      return loginResult;
     }
 
     // Perform the actual web service call. Exceptions are caught and return

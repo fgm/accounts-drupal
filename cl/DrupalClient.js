@@ -131,14 +131,8 @@ class DrupalClient extends DrupalBase {
     let result = {};
     asArray.forEach((v) => {
       let [name, value] = v.trim().split('=');
-      try {
-        this.checkCookie(name, value);
+      if (this.checkCookie(name, value)) {
         result[name] = value;
-      }
-      catch (e) {
-        if (!(e instanceof Match.Error)) {
-          throw e;
-        }
       }
     });
     return result;
