@@ -10,15 +10,15 @@
  * - it stores a Drupal instance as the "drupal" global.
  */
 
-import { Accounts } from "meteor/accounts-base";
-import { HTTP } from "meteor/http";
-import { Match } from "meteor/check";
-import { Meteor } from "meteor/meteor";
-import { ServiceConfiguration } from "meteor/service-configuration";
-import { WebApp } from "meteor/webapp";
+import { Accounts } from 'meteor/accounts-base';
+import { HTTP } from 'meteor/http';
+import { Match } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
+import { ServiceConfiguration } from 'meteor/service-configuration';
+import { WebApp } from 'meteor/webapp';
 
-import { Drupal } from "../shared/Drupal";
-import { makeServer } from "./makeServer";
+import { Drupal } from '../shared/Drupal';
+import { makeServer } from './makeServer';
 
 /**
  * A Meteor.startup() argument function.
@@ -27,10 +27,10 @@ import { makeServer } from "./makeServer";
  *
  * @param {Log} logger
  *   A Log-compatible logger.
- * @param {object} settings
+ * @param {Object} settings
  *   Meteor settings containing configuration for accounts-drupal.
  *
- * @return {void}
+ * @returns {undefined}
  */
 const onStartup = (logger, settings) => {
   logger.debug('Server startup');

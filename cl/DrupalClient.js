@@ -3,7 +3,7 @@
  *   Contains the DrupalClient class.
  */
 
-import { DrupalBase } from "../shared/DrupalBase"
+import { DrupalBase } from '../shared/DrupalBase';
 
 const SERVICE_NAME = DrupalBase.SERVICE_NAME;
 
@@ -32,8 +32,6 @@ class DrupalClient extends DrupalBase {
    *   A Meteor logger service.
    * @param {Object} publicSettings
    *   The public portion of Meteor.settings.
-   *
-   * @constructor
    */
   constructor(accounts, match, meteor, random, template, stream, logger, publicSettings) {
     super(meteor, logger, match, stream);
@@ -105,7 +103,7 @@ class DrupalClient extends DrupalBase {
    *
    * Do nothing if it is already active.
    *
-   * @return {void}
+   * @returns {undefined}
    */
   backgroundLoginEnable() {
     if (!this.backgroundLoginInterval) {
@@ -119,7 +117,7 @@ class DrupalClient extends DrupalBase {
   /**
    * Convert a JS-style cookie string to a hash of Drupal-plausible cookies.
    *
-   * @param {String} cookie
+   * @param {string} cookie
    *   The cookie string in JS semicolon-separated format.
    *
    * @returns {Object}
@@ -164,12 +162,12 @@ class DrupalClient extends DrupalBase {
   /**
    * The method to use to perform login.
    *
-   * @param {String} cookie
+   * @param {string} cookie
    *   JS semicolon-separated cookie string.
-   * @param {function} callback
+   * @param {Function} callback
    *   Optional. Callback after login, as userCallback(err, res).
    *
-   * @return {void}
+   * @returns {undefined}
    */
   login(cookie, callback = null) {
     let logArg = { app: this.SERVICE_NAME };
@@ -222,15 +220,12 @@ class DrupalClient extends DrupalBase {
   /**
    * An optional helper to log out.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   logout() {
     this.accounts.logout();
   }
 
-  /**
-   * @inheritDoc
-   */
   initStateMethod() {
     this.logger.debug('Client stub for initStateMethod, doing nothing.');
     return this.getDefaultUser();
@@ -241,7 +236,7 @@ class DrupalClient extends DrupalBase {
    *
    * If invoked for an anonymous user, disable the background process.
    *
-   * @return {void}
+   * @returns {undefined}
    */
   onBackgroundLogin() {
     this.logger.debug('Background login check');
@@ -262,7 +257,7 @@ class DrupalClient extends DrupalBase {
    * @param {number} userId
    *   The userId, if event is "userId".
    *
-   * @returns {void}
+   * @returns {undefined}
    *
    * @see DrupalServer.observe()
    */
@@ -296,7 +291,7 @@ class DrupalClient extends DrupalBase {
   /**
    * Register template helpers for Blaze if template is available.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   registerHelpers() {
     if (!this.template) {
@@ -312,11 +307,8 @@ class DrupalClient extends DrupalBase {
     helpers.forEach(({ name, code }) => this.template.registerHelper(name, code));
   }
 
-  /**
-   * @inheritDoc
-   */
   whoamiMethod(cookieName, cookieValue) {
-    this.logger.info(`Client stub for whoamiMethod(${cookieName}, ${cookieValue}), returning default user.`);
+    this.logger.debug(`Client stub for whoamiMethod(${cookieName}, ${cookieValue}), returning default user.`);
     return this.getDefaultUser();
   }
 
@@ -341,4 +333,4 @@ class DrupalClient extends DrupalBase {
 
 export {
   DrupalClient,
-}
+};

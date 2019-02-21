@@ -32,8 +32,6 @@ class DrupalBase {
    *
    * @returns {DrupalBase}
    *   An unconfigured base instance, meant for child use.
-   *
-   * @constructor
    */
   constructor(meteor, logger, match, stream) {
     this.logger = logger || null;
@@ -66,16 +64,16 @@ class DrupalBase {
    *
    * @see \Drupal\Component\Utility\Crypt::randomBytesBase64()
    *
-   * @param {String} name
+   * @param {string} name
    *   The cookie name.
-   * @param {String} value
+   * @param {string} value
    *   The cookie value (id).
    *
    * @returns {boolean}
    *   Did plausibility checks pass ?
    */
   checkCookie(name, value) {
-    if (typeof name !== 'string' || typeof value !== 'string') {
+    if (typeof name !== 'string' || typeof value !== 'string') {
       return false;
     }
     const NAME_REGEXP = /^SESS[0-9A-F]{32}$/i;
@@ -95,15 +93,15 @@ class DrupalBase {
   /**
    * Abstract base method for "accounts-drupal:initState".
    *
-   * @param {Boolean} refresh
+   * @param {boolean} refresh
    *   On server, perform a Drupal WS call if true, otherwise use the instance
    *   information. Ignored on client.
    *
    * @returns {Object}
-   *   - cookieName: the name of the session cookie used by the site.
-   *   - anonymousName: the name of the anonymous user to use when not logged
-   *   in.
-   *   - online: site was available at last check.
+   *   - Key cookieName: the name of the session cookie used by the site.
+   *   - Key anonymousName: the name of the anonymous user to use when not
+   *     logged in.
+   *   - Key online: site was available at last check.
    */
   initStateMethod(refresh = false) {
     throw new Meteor.Error('abstract-method', 'initStateMethod is abstract: use a concrete implementation instead.');
@@ -112,15 +110,15 @@ class DrupalBase {
   /**
    * Abstract base method for "accounts-drupal:whoami".
    *
-   * @param {String} cookieName
+   * @param {string} cookieName
    *   The cookie name.
-   * @param {String} cookieValue
+   * @param {string} cookieValue
    *   The cookie value.
    *
    * @returns {Object}
-   *   - uid: a Drupal user id, 0 if not logged on Drupal
-   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
-   *   - roles: an array of role names, possibly empty.
+   *   - Key uid: a Drupal user id, 0 if not logged on Drupal.
+   *   - Key name: a Drupal user name, defaulting to the settings-defined anonymous.
+   *   - Key roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
     throw new Meteor.Error('abstract-method', `whoamiMehod(${cookieName}, ${cookieValue}) is abstract: use a concrete implementation instead.`);
@@ -213,4 +211,4 @@ class DrupalBase {
 
 export {
   DrupalBase,
-}
+};

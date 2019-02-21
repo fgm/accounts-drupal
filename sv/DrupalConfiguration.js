@@ -2,7 +2,7 @@
  * @file
  *   The configuration of accounts-drupal.
  */
-import { _ } from "meteor/underscore";
+import { _ } from 'meteor/underscore';
 
 /**
  * Configure the service from its settings.
@@ -12,11 +12,14 @@ class DrupalConfiguration {
    * Constructor.
    *
    * @param {Meteor} meteor
+   *   The Meteor global.
    * @param {Object} serviceConfiguration
+   *   The ServiceConfiguration service.
    * @param {Log} logger
+   *   The Meteor Log service.
    * @param {Object} settings
    *   Meteor settings.
-   * @param {String} name
+   * @param {string} name
    *   The name of the service.
    *
    * @returns {DrupalConfiguration}
@@ -67,10 +70,10 @@ class DrupalConfiguration {
   /**
    * Update the stored configuration from the current instance.
    *
-   * @param {String} name
+   * @param {string} name
    *   The name of the Drupal login service.
    *
-   * @return {void}
+   * @returns {undefined}
    */
   persist(name) {
     const selector = { service: name };
@@ -86,4 +89,4 @@ class DrupalConfiguration {
 
 export {
   DrupalConfiguration,
-}
+};

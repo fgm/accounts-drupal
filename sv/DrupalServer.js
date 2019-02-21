@@ -3,10 +3,10 @@
  *   Contains the DrupalServer class.
  */
 
-import nodeUrl from "url";
-import util from "util";
+import nodeUrl from 'url';
+import util from 'util';
 
-import { DrupalBase } from "../shared/DrupalBase";
+import { DrupalBase } from '../shared/DrupalBase';
 
 const SERVICE_NAME = DrupalBase.SERVICE_NAME;
 
@@ -24,9 +24,11 @@ class DrupalServer extends DrupalBase {
    * @param {Meteor} meteor
    *   The Meteor global.
    * @param {Log} logger
-   *   the Meteor Log service.
+   *   The Meteor Log service.
    * @param {IMatch} match
    *   The Meteor check matcher service.
+   * @param {WebApp} webapp
+   *   The Meteor webapp service.
    * @param {Streamer} stream
    *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
@@ -62,21 +64,21 @@ class DrupalServer extends DrupalBase {
       logger.debug('Retrieved Drupal site information.');
     }
     else {
-      throw new meteor.Error("init-state", `Could not reach Drupal server at ${this.settings.server.site}.`);
+      throw new meteor.Error('init-state', `Could not reach Drupal server at ${this.settings.server.site}.`);
     }
   }
 
   /**
    * Check a condition and if it fails, build a loginResult failure.
    *
-   * @param {Boolean} condition
+   * @param {boolean} condition
    *   The condition to check.
-   * @param {String} message
+   * @param {string} message
    *   The message for failure cases.
-   * @param {Boolean} notify
+   * @param {boolean} notify
    *   Log a fail result.
    *
-   * @returns {Object|false}
+   * @returns {Object|boolean}
    *   - If the condition is false, a failing login result object.
    *   - Otherwise, false.
    */
@@ -100,10 +102,10 @@ class DrupalServer extends DrupalBase {
    *
    * This is invoked only if autopublish is enabled.
    *
-   * @return {Object}
+   * @returns {Object}
    *   An object with up to two keys:
-   *   - forLoggedInUsers: an array of fields published to the current user
-   *   - forOtherUsers: an array of fields published to other users
+   *   - Key forLoggedInUsers: an array of fields published to the current user.
+   *   - Key forOtherUsers: an array of fields published to other users.
    */
   autopublishFields() {
     const allFields = `services.${this.SERVICE_NAME}`;
@@ -120,14 +122,12 @@ class DrupalServer extends DrupalBase {
   /**
    * Emit a SSO event on the SSO stream.
    *
-   *   The event details
-   *
-   * @param {String} action
+   * @param {string} action
    *   The action to perform. Currently only valid value is "login".
-   * @param {Number} userId
+   * @param {number} userId
    *   The integer user id to filter on, or 0 for any user.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   emit(action, userId = 0) {
     const totalSubscriptionCount = this.stream.subscriptions.length;
@@ -141,7 +141,7 @@ class DrupalServer extends DrupalBase {
    * Return the collection used for updates.
    *
    * @param {Meteor} meteor
-   *   The Meteor service
+   *   The Meteor service.
    *
    * @returns {Mongo.Collection|Meteor.Collection|*}
    *   The updates collection.
@@ -204,7 +204,11 @@ class DrupalServer extends DrupalBase {
    * The controller for the web route used to notify the package about changes.
    *
    * @param {IncomingMessage} req
+   *   The request object.
    * @param {ServerResponse} res
+   *   The response object.
+   *
+   * @returns {undefined}
    */
   handleUserEvent(req, res) {
     res.writeHead(200);
@@ -251,7 +255,7 @@ class DrupalServer extends DrupalBase {
    *   The login request passed by Meteor. It will be of interest to the package
    *   only if it contains a key named after the package.
    *
-   * @return {Object} The result of a login request
+   * @returns {Object} The result of a login request
    *   - Undefined if the package does not handle this request.
    *   - False if the package rejects the request.
    *   - A result object containing the user information in case of login success.
@@ -273,7 +277,7 @@ class DrupalServer extends DrupalBase {
     this.logger.debug({
       app: NAME,
       message: `${SERVICE_NAME} login attempt`,
-      cookies
+      cookies,
     });
 
     // Shortcut: avoid WS call if Drupal is not available.
@@ -348,7 +352,7 @@ class DrupalServer extends DrupalBase {
    *
    * @see AccountsServer._initServerPublications()
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   register() {
     let that = this;
@@ -363,7 +367,7 @@ class DrupalServer extends DrupalBase {
   /**
    * Autopublish custom fields on startup, based on configuration.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   registerAutopublish() {
     this.accounts.addAutopublishFields(this.autopublishFields());
@@ -372,7 +376,6 @@ class DrupalServer extends DrupalBase {
   registerWebRoute() {
     // This path must match the one in Drupal module at meteor/src/Notifier::PATH.
     this.webapp.connectHandlers.use('/drupalUserEvent', this.handleUserEvent.bind(this));
-
   }
 
   /**
@@ -381,13 +384,13 @@ class DrupalServer extends DrupalBase {
    * This method can be used as a Drupal method (hence its name), but the
    * default logic does not require it.
    *
-   * @param {Boolean} refresh
+   * @param {boolean} refresh
    *   Perform a Drupal WS call if true, otherwise use the instance information.
    *
    * @returns {Object}
-   *   - cookieName: the name of the session cookie used by the site.
-   *   - anonymousName: the name of the anonymous user to use when not logged in.
-   *   - online: site was available at last check.
+   *   - Key cookieName: the name of the session cookie used by the site.
+   *   - Key anonymousName: the name of the anonymous user to use when not logged in.
+   *   - Key online: site was available at last check.
    */
   initStateMethod(refresh = false) {
     if (!refresh) {
@@ -425,12 +428,12 @@ class DrupalServer extends DrupalBase {
   /**
    * Handle collection change events.
    *
-   * @param {String} changeType
+   * @param {string} changeType
    *   The change type: added, changed.
    * @param {Object} doc
    *   An affected documents.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   observe(changeType, doc) {
     if (changeType !== 'added') {
@@ -478,7 +481,7 @@ class DrupalServer extends DrupalBase {
    * - Initialize the TTL index on the package updates collection
    * - Observe it.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   setupUpdatesObserver() {
     this.updatesCollection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
@@ -499,13 +502,14 @@ class DrupalServer extends DrupalBase {
    *     - "field_delete", "field_insert", "field_update",
    *     - "entity_field_update"
    *   - {int} delay: the delay to wait before inserting the event, in msec.
-   * @param remoteAddress
+   * @param {string} remoteAddress
    *   The address of the HTTP client (or proxy).
    *
-   * @returns {void}
+   * @returns {undefined}
    *
    * @see \Drupal\meteor\IdentityListener::__destruct()
-   * @TODO handle proxies.
+   *
+   * TODO handle proxies.
    */
   storeUpdateRequest(rawQuery, remoteAddress) {
     const index = this.settings.server.updaters.indexOf(remoteAddress);
@@ -565,10 +569,10 @@ class DrupalServer extends DrupalBase {
   /**
    * Delete user by id.
    *
-   * @param {Number} rawUserId
+   * @param {number} rawUserId
    *   The Drupal uid for the user.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   userDelete(rawUserId) {
     const userId = parseInt(rawUserId, 10);
@@ -581,15 +585,15 @@ class DrupalServer extends DrupalBase {
   /**
    * Call the Drupal whoami service.
    *
-   * @param {String} cookieName
+   * @param {string} cookieName
    *   The cookie name.
-   * @param {String} cookieValue
+   * @param {string} cookieValue
    *   The cookie value. May be null.
    *
    * @returns {Object}
-   *   - uid: a Drupal user id, 0 if not logged on Drupal
-   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
-   *   - roles: an array of role names, possibly empty.
+   *   - Key uid: a Drupal user id, 0 if not logged on Drupal
+   *   - Key name: a Drupal user name, defaulting to the settings-defined anonymous.
+   *   - Key roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
     const url = this.settings.server.site + '/meteor/whoami';
@@ -631,4 +635,4 @@ class DrupalServer extends DrupalBase {
 
 export {
   DrupalServer,
-}
+};

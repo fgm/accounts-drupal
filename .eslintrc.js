@@ -10,10 +10,17 @@ module.exports = {
     // Meteor
     '$': true,
     '_': true,
+    'IncomingMessage': true,
+    'ServerResponse': true,
 
     'Accounts': true,
+    'AccountsClient': true,
+    'AccountsServer': true,
     'HTTP': true,
     'Log': true,
+    'IHTTP': true,
+    'IMatch': true,
+    'ITemplate': true,
     'Match': true,
     'Meteor': true,
     'Mongo': true,
@@ -25,6 +32,9 @@ module.exports = {
     'Tinytest': true,
     'WebApp': true,
     'check': true,
+
+    // RocketChat::Streamer
+    'Streamer': true,
 
     // The globals defined in this package.
     'Drupal': true,

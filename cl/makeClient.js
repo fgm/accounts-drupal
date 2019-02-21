@@ -5,8 +5,8 @@
  * - Meteor.loginWithDrupal([options, ]callback)
  */
 
-import { DrupalClient } from "./DrupalClient";
-import { DrupalBase } from "../shared/DrupalBase";
+import { DrupalClient } from './DrupalClient';
+import { DrupalBase } from '../shared/DrupalBase';
 
 const makeClient = (accounts, match, meteor, random, template, logger, settings) => {
   let client;
@@ -46,4 +46,4 @@ const makeClient = (accounts, match, meteor, random, template, logger, settings)
 
 export {
   makeClient,
-}
+};
