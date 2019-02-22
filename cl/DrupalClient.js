@@ -5,8 +5,6 @@
 
 import { DrupalBase } from '../shared/DrupalBase';
 
-const SERVICE_NAME = DrupalBase.SERVICE_NAME;
-
 /**
  * The client-side class for the package.
  *
@@ -203,12 +201,12 @@ class DrupalClient extends DrupalBase {
       // because it happens in a loop. Do NOT remove that property.
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: `Not logged-in with ${SERVICE_NAME}` }));
+          this.logger.warn(Object.assign(logArg, { message: `Not logged-in with ${this.SERVICE_NAME}` }));
           this.logout();
         }
         else {
           this.backgroundLoginEnable();
-          this.logger.debug(Object.assign(logArg, { message: `Logged-in with ${SERVICE_NAME}` }));
+          this.logger.debug(Object.assign(logArg, { message: `Logged-in with ${this.SERVICE_NAME}` }));
         }
         if (_.isFunction(callback)) {
           callback(err, res);
@@ -299,9 +297,9 @@ class DrupalClient extends DrupalBase {
     }
 
     const helpers = [
-      { name: 'accountsDrupalUserId', code: () => client.uid },
-      { name: 'accountsDrupalUsername', code: () => client.name },
-      { name: 'accountsDrupalRoles', code: () => client.roles }
+      { name: 'accountsDrupalUserId', code: () => this.uid },
+      { name: 'accountsDrupalUsername', code: () => this.name },
+      { name: 'accountsDrupalRoles', code: () => this.roles }
     ];
 
     helpers.forEach(({ name, code }) => this.template.registerHelper(name, code));
@@ -314,7 +312,7 @@ class DrupalClient extends DrupalBase {
 
   get uid() {
     const user = this.user();
-    const uid = user ? parseInt(user.profile[client.SERVICE_NAME].uid, 10) : 0;
+    const uid = user ? parseInt(user.profile[this.SERVICE_NAME].uid, 10) : 0;
     return uid;
   }
 

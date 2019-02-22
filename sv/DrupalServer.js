@@ -8,8 +8,6 @@ import util from 'util';
 
 import { DrupalBase } from '../shared/DrupalBase';
 
-const SERVICE_NAME = DrupalBase.SERVICE_NAME;
-
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
  *
@@ -55,8 +53,8 @@ class DrupalServer extends DrupalBase {
     this.setupUpdatesObserver();
 
     // - Merge Meteor settings to instance.
-    Object.assign(this.settings.server, meteor.settings[SERVICE_NAME]);
-    Object.assign(this.settings.client, meteor.settings.public[SERVICE_NAME]);
+    Object.assign(this.settings.server, meteor.settings[this.SERVICE_NAME]);
+    Object.assign(this.settings.client, meteor.settings.public[this.SERVICE_NAME]);
 
     // - Initialize Drupal-dependent state.
     this.state = this.initStateMethod(true);
@@ -218,7 +216,7 @@ class DrupalServer extends DrupalBase {
     // The url property on IncomingMessage only contains the unmatched part.
     const parsed = nodeUrl.parse(req.url, true);
     const query = util.inspect(parsed.query);
-    this.logger.info(`Storing refresh request sent from ${remote}: ${parsed.pathname} with query ${query}`);
+    this.logger.info(`Received user event from ${remote}: ${parsed.pathname} with query ${query}`);
     this.storeUpdateRequest(req.query, req.socket.remoteAddress);
   }
 
@@ -261,22 +259,20 @@ class DrupalServer extends DrupalBase {
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    const NAME = this.SERVICE_NAME;
-
     // A login request goes through all these handlers to find its login handler.
     // So in our login handler, we only consider login requests which have an
     // field matching our service name, i.e. "fake". To avoid false positives,
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
-    const cookies = loginRequest[NAME];
-    let loginResult = this.loginCheck(cookies, `Login not handled by ${SERVICE_NAME}.`, false);
+    const cookies = loginRequest[this.SERVICE_NAME];
+    let loginResult = this.loginCheck(cookies, `Login not handled by ${this.SERVICE_NAME}.`, false);
     if (loginResult) {
       return loginResult;
     }
 
     this.logger.debug({
-      app: NAME,
-      message: `${SERVICE_NAME} login attempt`,
+      app: this.SERVICE_NAME,
+      message: `${this.SERVICE_NAME} login attempt`,
       cookies,
     });
 
@@ -313,7 +309,7 @@ class DrupalServer extends DrupalBase {
     }
 
     this.logger.debug({
-      app: NAME,
+      app: this.SERVICE_NAME,
       message: `Login succeeded for user "${userInfo.name} (${userInfo.uid}). Roles: ` + this.json.stringify(userInfo.roles)
     });
 
@@ -340,8 +336,8 @@ class DrupalServer extends DrupalBase {
       // But no other field is published unless autopublish is on.
       onlyWithAutopublish: 'only with autopublish'
     };
-    userOptions.profile[NAME] = serviceData.onProfile;
-    return this.accounts.updateOrCreateUserFromExternalService(NAME, serviceData, userOptions);
+    userOptions.profile[this.SERVICE_NAME] = serviceData.onProfile;
+    return this.accounts.updateOrCreateUserFromExternalService(this.SERVICE_NAME, serviceData, userOptions);
   }
 
   /**
