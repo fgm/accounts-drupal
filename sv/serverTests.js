@@ -5,7 +5,7 @@ const SERVICE_NAME = 'mock-service';
 /**
  * Setup helper for tests: create a mock settings document.
  *
- * @param {String} serviceName
+ * @param {string} serviceName
  *   The name of the login service.
  *
  * @returns {{public: {}}}

@@ -3,9 +3,9 @@
  *   Contains the Drupal composite class.
  */
 
-import { DrupalBase } from "./DrupalBase";
-import { DrupalClient } from "../cl/DrupalClient";
-import { DrupalServer } from "../sv/DrupalServer";
+import { DrupalBase } from './DrupalBase';
+import { DrupalClient } from '../cl/DrupalClient';
+import { DrupalServer } from '../sv/DrupalServer';
 
 /**
  * The shared class composing DrupalClient and DrupalServer.
@@ -78,4 +78,4 @@ class Drupal extends DrupalBase {
 
 export {
   Drupal,
-}
+};

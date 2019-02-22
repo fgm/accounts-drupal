@@ -3,7 +3,10 @@
  *   Contains the DrupalServer class.
  */
 
-import { DrupalBase } from "../shared/DrupalBase";
+import nodeUrl from 'url';
+import util from 'util';
+
+import { DrupalBase } from '../shared/DrupalBase';
 
 /**
  * A class providing the mechanisms for the "drupal" accounts service.
@@ -19,9 +22,11 @@ class DrupalServer extends DrupalBase {
    * @param {Meteor} meteor
    *   The Meteor global.
    * @param {Log} logger
-   *   the Meteor Log service.
+   *   The Meteor Log service.
    * @param {IMatch} match
    *   The Meteor check matcher service.
+   * @param {WebApp} webapp
+   *   The Meteor webapp service.
    * @param {Streamer} stream
    *   The stream used by the package.
    * @param {ServiceConfiguration} configuration
@@ -48,8 +53,8 @@ class DrupalServer extends DrupalBase {
     this.setupUpdatesObserver();
 
     // - Merge Meteor settings to instance.
-    Object.assign(this.settings.server, meteor.settings[DrupalBase.SERVICE_NAME]);
-    Object.assign(this.settings.client, meteor.settings.public[DrupalBase.SERVICE_NAME]);
+    Object.assign(this.settings.server, meteor.settings[this.SERVICE_NAME]);
+    Object.assign(this.settings.client, meteor.settings.public[this.SERVICE_NAME]);
 
     // - Initialize Drupal-dependent state.
     this.state = this.initStateMethod(true);
@@ -57,21 +62,21 @@ class DrupalServer extends DrupalBase {
       logger.debug('Retrieved Drupal site information.');
     }
     else {
-      throw new meteor.Error("init-state", `Could not reach Drupal server at ${this.settings.server.site}.`);
+      throw new meteor.Error('init-state', `Could not reach Drupal server at ${this.settings.server.site}.`);
     }
   }
 
   /**
    * Check a condition and if it fails, build a loginResult failure.
    *
-   * @param {Boolean} condition
+   * @param {boolean} condition
    *   The condition to check.
-   * @param {String} message
+   * @param {string} message
    *   The message for failure cases.
-   * @param {Boolean} notify
+   * @param {boolean} notify
    *   Log a fail result.
    *
-   * @returns {Object|false}
+   * @returns {Object|boolean}
    *   - If the condition is false, a failing login result object.
    *   - Otherwise, false.
    */
@@ -95,10 +100,10 @@ class DrupalServer extends DrupalBase {
    *
    * This is invoked only if autopublish is enabled.
    *
-   * @return {Object}
+   * @returns {Object}
    *   An object with up to two keys:
-   *   - forLoggedInUsers: an array of fields published to the current user
-   *   - forOtherUsers: an array of fields published to other users
+   *   - Key forLoggedInUsers: an array of fields published to the current user.
+   *   - Key forOtherUsers: an array of fields published to other users.
    */
   autopublishFields() {
     const allFields = `services.${this.SERVICE_NAME}`;
@@ -115,17 +120,18 @@ class DrupalServer extends DrupalBase {
   /**
    * Emit a SSO event on the SSO stream.
    *
-   *   The event details
-   *
-   * @param {String} action
+   * @param {string} action
    *   The action to perform. Currently only valid value is "login".
-   * @param {Number} userId
+   * @param {number} userId
    *   The integer user id to filter on, or 0 for any user.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   emit(action, userId = 0) {
-    this.logger.debug('emitting', action, userId);
+    const totalSubscriptionCount = this.stream.subscriptions.length;
+    const eventSubscriptions = this.stream.subscriptionsByEventName[this.EVENT_NAME];
+    const eventSubscriptionCount = eventSubscriptions ? eventSubscriptions.length : 0;
+    this.logger.info(`Emitting ${action}(${userId}) to ${eventSubscriptionCount} subscription for ${this.EVENT_NAME}, out of ${totalSubscriptionCount} overall subscriptions\n`);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
 
@@ -133,7 +139,7 @@ class DrupalServer extends DrupalBase {
    * Return the collection used for updates.
    *
    * @param {Meteor} meteor
-   *   The Meteor service
+   *   The Meteor service.
    *
    * @returns {Mongo.Collection|Meteor.Collection|*}
    *   The updates collection.
@@ -196,14 +202,21 @@ class DrupalServer extends DrupalBase {
    * The controller for the web route used to notify the package about changes.
    *
    * @param {IncomingMessage} req
+   *   The request object.
    * @param {ServerResponse} res
+   *   The response object.
+   *
+   * @returns {undefined}
    */
   handleUserEvent(req, res) {
     res.writeHead(200);
     res.end('Sent refresh request');
 
     const remote = req.socket.remoteAddress;
-    this.logger.info(`Storing refresh request sent from ${remote}`);
+    // The url property on IncomingMessage only contains the unmatched part.
+    const parsed = nodeUrl.parse(req.url, true);
+    const query = util.inspect(parsed.query);
+    this.logger.info(`Received user event from ${remote}: ${parsed.pathname} with query ${query}`);
     this.storeUpdateRequest(req.query, req.socket.remoteAddress);
   }
 
@@ -240,33 +253,31 @@ class DrupalServer extends DrupalBase {
    *   The login request passed by Meteor. It will be of interest to the package
    *   only if it contains a key named after the package.
    *
-   * @return {Object} The result of a login request
+   * @returns {Object} The result of a login request
    *   - Undefined if the package does not handle this request.
    *   - False if the package rejects the request.
    *   - A result object containing the user information in case of login success.
    */
   loginHandler(loginRequest) {
-    const NAME = this.SERVICE_NAME;
-
     // A login request goes through all these handlers to find its login handler.
     // So in our login handler, we only consider login requests which have an
     // field matching our service name, i.e. "fake". To avoid false positives,
     // any login package will only look for login request information under its
     // own service name, returning undefined otherwise.
-    const cookies = loginRequest[NAME];
-    let loginResult = this.loginCheck(cookies, 'Login not handled.', false);
+    const cookies = loginRequest[this.SERVICE_NAME];
+    let loginResult = this.loginCheck(cookies, `Login not handled by ${this.SERVICE_NAME}.`, false);
     if (loginResult) {
       return loginResult;
     }
 
     this.logger.debug({
-      app: NAME,
-      message: 'Drupal login attempt',
-      cookies
+      app: this.SERVICE_NAME,
+      message: `${this.SERVICE_NAME} login attempt`,
+      cookies,
     });
 
     // Shortcut: avoid WS call if Drupal is not available.
-    loginResult = this.loginCheck(this.state.online, 'Drupal server is not online.');
+    loginResult = this.loginCheck(this.state.online, 'Drupal server is not online.', true);
     if (loginResult) {
       return loginResult;
     }
@@ -274,23 +285,17 @@ class DrupalServer extends DrupalBase {
     // Shortcut: avoid WS call if cookie name is not the expected one.
     const cookieName = this.state.cookieName;
     const cookieValue = cookies[cookieName];
-    loginResult = this.loginCheck(cookieValue, 'No cookie matches Drupal session name.');
+    loginResult = this.loginCheck(cookieValue, 'No cookie matches Drupal session name.', false);
     if (loginResult) {
       return loginResult;
     }
 
     // Shortcut: avoid WS call if cookie value is malformed.
-    try {
-      // Never forget to check tainted data like these.
-      this.checkCookie(cookieName, cookieValue);
-    }
-    catch (e) {
-      let expectedException = e instanceof Match.Error;
-      loginResult = this.loginCheck(expectedException, 'Malformed session cookie');
-      if (loginResult) {
-        return loginResult;
-      }
-      throw e;
+    // Never forget to check tainted data like these.
+    const cookieIsPlausible = this.checkCookie(cookieName, cookieValue);
+    loginResult = this.loginCheck(cookieIsPlausible, 'Malformed session cookie', false);
+    if (loginResult) {
+      return loginResult;
     }
 
     // Perform the actual web service call. Exceptions are caught and return
@@ -304,7 +309,7 @@ class DrupalServer extends DrupalBase {
     }
 
     this.logger.debug({
-      app: NAME,
+      app: this.SERVICE_NAME,
       message: `Login succeeded for user "${userInfo.name} (${userInfo.uid}). Roles: ` + this.json.stringify(userInfo.roles)
     });
 
@@ -331,8 +336,8 @@ class DrupalServer extends DrupalBase {
       // But no other field is published unless autopublish is on.
       onlyWithAutopublish: 'only with autopublish'
     };
-    userOptions.profile[NAME] = serviceData.onProfile;
-    return this.accounts.updateOrCreateUserFromExternalService(NAME, serviceData, userOptions);
+    userOptions.profile[this.SERVICE_NAME] = serviceData.onProfile;
+    return this.accounts.updateOrCreateUserFromExternalService(this.SERVICE_NAME, serviceData, userOptions);
   }
 
   /**
@@ -343,7 +348,7 @@ class DrupalServer extends DrupalBase {
    *
    * @see AccountsServer._initServerPublications()
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   register() {
     let that = this;
@@ -358,7 +363,7 @@ class DrupalServer extends DrupalBase {
   /**
    * Autopublish custom fields on startup, based on configuration.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   registerAutopublish() {
     this.accounts.addAutopublishFields(this.autopublishFields());
@@ -367,7 +372,6 @@ class DrupalServer extends DrupalBase {
   registerWebRoute() {
     // This path must match the one in Drupal module at meteor/src/Notifier::PATH.
     this.webapp.connectHandlers.use('/drupalUserEvent', this.handleUserEvent.bind(this));
-
   }
 
   /**
@@ -376,13 +380,13 @@ class DrupalServer extends DrupalBase {
    * This method can be used as a Drupal method (hence its name), but the
    * default logic does not require it.
    *
-   * @param {Boolean} refresh
+   * @param {boolean} refresh
    *   Perform a Drupal WS call if true, otherwise use the instance information.
    *
    * @returns {Object}
-   *   - cookieName: the name of the session cookie used by the site.
-   *   - anonymousName: the name of the anonymous user to use when not logged in.
-   *   - online: site was available at last check.
+   *   - Key cookieName: the name of the session cookie used by the site.
+   *   - Key anonymousName: the name of the anonymous user to use when not logged in.
+   *   - Key online: site was available at last check.
    */
   initStateMethod(refresh = false) {
     if (!refresh) {
@@ -420,12 +424,12 @@ class DrupalServer extends DrupalBase {
   /**
    * Handle collection change events.
    *
-   * @param {String} changeType
+   * @param {string} changeType
    *   The change type: added, changed.
    * @param {Object} doc
    *   An affected documents.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   observe(changeType, doc) {
     if (changeType !== 'added') {
@@ -462,7 +466,7 @@ class DrupalServer extends DrupalBase {
         break;
 
       default:
-        this.logger.warn('Observed unsupported event type ' + doc.event);
+        this.logger.warn(`Observed unsupported event type ${doc.event}`);
         break;
     }
   }
@@ -473,7 +477,7 @@ class DrupalServer extends DrupalBase {
    * - Initialize the TTL index on the package updates collection
    * - Observe it.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   setupUpdatesObserver() {
     this.updatesCollection._ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 300 });
@@ -494,13 +498,14 @@ class DrupalServer extends DrupalBase {
    *     - "field_delete", "field_insert", "field_update",
    *     - "entity_field_update"
    *   - {int} delay: the delay to wait before inserting the event, in msec.
-   * @param remoteAddress
+   * @param {string} remoteAddress
    *   The address of the HTTP client (or proxy).
    *
-   * @returns {void}
+   * @returns {undefined}
    *
    * @see \Drupal\meteor\IdentityListener::__destruct()
-   * @TODO handle proxies.
+   *
+   * TODO handle proxies.
    */
   storeUpdateRequest(rawQuery, remoteAddress) {
     const index = this.settings.server.updaters.indexOf(remoteAddress);
@@ -560,31 +565,31 @@ class DrupalServer extends DrupalBase {
   /**
    * Delete user by id.
    *
-   * @param {Number} rawUserId
+   * @param {number} rawUserId
    *   The Drupal uid for the user.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   userDelete(rawUserId) {
     const userId = parseInt(rawUserId, 10);
-    this.logger.info(`User ${userId} was deleted.`);
     this.usersCollection.remove({
       'services.accounts-drupal.public.uid': userId
     });
+    this.logger.info(`User ${userId} was deleted.`);
   }
 
   /**
    * Call the Drupal whoami service.
    *
-   * @param {String} cookieName
+   * @param {string} cookieName
    *   The cookie name.
-   * @param {String} cookieValue
+   * @param {string} cookieValue
    *   The cookie value. May be null.
    *
    * @returns {Object}
-   *   - uid: a Drupal user id, 0 if not logged on Drupal
-   *   - name: a Drupal user name, defaulting to the settings-defined anonymous.
-   *   - roles: an array of role names, possibly empty.
+   *   - Key uid: a Drupal user id, 0 if not logged on Drupal
+   *   - Key name: a Drupal user name, defaulting to the settings-defined anonymous.
+   *   - Key roles: an array of role names, possibly empty.
    */
   whoamiMethod(cookieName, cookieValue) {
     const url = this.settings.server.site + '/meteor/whoami';
@@ -600,7 +605,7 @@ class DrupalServer extends DrupalBase {
     let options = Object.assign(defaultOptions, settingsOptions);
     let info;
 
-    this.logger.info(`Checking ${cookieName}=${cookieValue} on ${url}.`);
+    this.logger.debug(`Checking ${cookieName}=${cookieValue} on ${url}.`);
     let t0 = +new Date();
     let t1 = t0;
     try {
@@ -608,7 +613,7 @@ class DrupalServer extends DrupalBase {
       t1 = +new Date();
       info = this.json.parse(ret.content);
       info.uid = parseInt(info.uid, 10);
-      this.logger.info(`Success: ${t1 - t0} msec later: ${this.json.stringify(info)}.`);
+      this.logger.info(`Whoami success in ${t1 - t0} msec: ${this.json.stringify(info)}.`);
     }
     catch (err) {
       info = {
@@ -617,7 +622,7 @@ class DrupalServer extends DrupalBase {
         'roles': []
       };
       t1 = +new Date();
-      this.logger.error(`Error: ${err.message} in ${t1 - t0} msec.`);
+      this.logger.error(`Whoami error in ${t1 - t0} msec: ${err.message}.`);
     }
 
     return info;
@@ -626,4 +631,4 @@ class DrupalServer extends DrupalBase {
 
 export {
   DrupalServer,
-}
+};

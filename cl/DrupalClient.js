@@ -3,7 +3,7 @@
  *   Contains the DrupalClient class.
  */
 
-import { DrupalBase } from "../shared/DrupalBase"
+import { DrupalBase } from '../shared/DrupalBase';
 
 /**
  * The client-side class for the package.
@@ -30,8 +30,6 @@ class DrupalClient extends DrupalBase {
    *   A Meteor logger service.
    * @param {Object} publicSettings
    *   The public portion of Meteor.settings.
-   *
-   * @constructor
    */
   constructor(accounts, match, meteor, random, template, stream, logger, publicSettings) {
     super(meteor, logger, match, stream);
@@ -103,7 +101,7 @@ class DrupalClient extends DrupalBase {
    *
    * Do nothing if it is already active.
    *
-   * @return {void}
+   * @returns {undefined}
    */
   backgroundLoginEnable() {
     if (!this.backgroundLoginInterval) {
@@ -117,26 +115,20 @@ class DrupalClient extends DrupalBase {
   /**
    * Convert a JS-style cookie string to a hash of Drupal-plausible cookies.
    *
-   * @param {String} cookie
+   * @param {string} cookie
    *   The cookie string in JS semicolon-separated format.
    *
    * @returns {Object}
    *   A cookie-name:cookie-value hash.
    */
-  cookies(cookie) {
+  candidateCookies(cookie) {
     check(cookie, String);
     let asArray = cookie.split(';');
     let result = {};
     asArray.forEach((v) => {
       let [name, value] = v.trim().split('=');
-      try {
-        this.checkCookie(name, value);
+      if (this.checkCookie(name, value)) {
         result[name] = value;
-      }
-      catch (e) {
-        if (!(e instanceof Match.Error)) {
-          throw e;
-        }
       }
     });
     return result;
@@ -168,16 +160,16 @@ class DrupalClient extends DrupalBase {
   /**
    * The method to use to perform login.
    *
-   * @param {String} cookie
+   * @param {string} cookie
    *   JS semicolon-separated cookie string.
-   * @param {function} callback
+   * @param {Function} callback
    *   Optional. Callback after login, as userCallback(err, res).
    *
-   * @return {void}
+   * @returns {undefined}
    */
   login(cookie, callback = null) {
     let logArg = { app: this.SERVICE_NAME };
-    const cookies = this.cookies(cookie);
+    const cookies = this.candidateCookies(cookie);
 
     if (_.isEmpty(cookies)) {
       let message;
@@ -209,12 +201,12 @@ class DrupalClient extends DrupalBase {
       // because it happens in a loop. Do NOT remove that property.
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: 'Not logged-in on Drupal.' }));
+          this.logger.warn(Object.assign(logArg, { message: `Not logged-in with ${this.SERVICE_NAME}` }));
           this.logout();
         }
         else {
           this.backgroundLoginEnable();
-          this.logger.debug(Object.assign(logArg, { message: 'Logged-in on Drupal.' }));
+          this.logger.debug(Object.assign(logArg, { message: `Logged-in with ${this.SERVICE_NAME}` }));
         }
         if (_.isFunction(callback)) {
           callback(err, res);
@@ -226,15 +218,12 @@ class DrupalClient extends DrupalBase {
   /**
    * An optional helper to log out.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   logout() {
     this.accounts.logout();
   }
 
-  /**
-   * @inheritDoc
-   */
   initStateMethod() {
     this.logger.debug('Client stub for initStateMethod, doing nothing.');
     return this.getDefaultUser();
@@ -245,7 +234,7 @@ class DrupalClient extends DrupalBase {
    *
    * If invoked for an anonymous user, disable the background process.
    *
-   * @return {void}
+   * @returns {undefined}
    */
   onBackgroundLogin() {
     this.logger.debug('Background login check');
@@ -266,13 +255,12 @@ class DrupalClient extends DrupalBase {
    * @param {number} userId
    *   The userId, if event is "userId".
    *
-   * @returns {void}
+   * @returns {undefined}
    *
    * @see DrupalServer.observe()
    */
   onRefresh(event, userId) {
-    this.logger.info('Automatic login status update: ' + event + '(' + userId + ')');
-    // this.login(document.cookie);
+    this.logger.debug('Automatic login status update: ' + event + '(' + userId + ')');
     switch (event) {
       case 'anonymous':
         if (!this.user()) {
@@ -293,7 +281,7 @@ class DrupalClient extends DrupalBase {
         break;
 
       default:
-        this.logger.info(`Received unknown event ${event}(${userId}): ignored`);
+        this.logger.warn(`Received unknown event ${event}(${userId}): ignored`);
         break;
     }
   }
@@ -301,7 +289,7 @@ class DrupalClient extends DrupalBase {
   /**
    * Register template helpers for Blaze if template is available.
    *
-   * @returns {void}
+   * @returns {undefined}
    */
   registerHelpers() {
     if (!this.template) {
@@ -309,25 +297,22 @@ class DrupalClient extends DrupalBase {
     }
 
     const helpers = [
-      { name: 'accountsDrupalUserId', code: () => client.uid },
-      { name: 'accountsDrupalUsername', code: () => client.name },
-      { name: 'accountsDrupalRoles', code: () => client.roles }
+      { name: 'accountsDrupalUserId', code: () => this.uid },
+      { name: 'accountsDrupalUsername', code: () => this.name },
+      { name: 'accountsDrupalRoles', code: () => this.roles }
     ];
 
     helpers.forEach(({ name, code }) => this.template.registerHelper(name, code));
   }
 
-  /**
-   * @inheritDoc
-   */
   whoamiMethod(cookieName, cookieValue) {
-    this.logger.info(`Client stub for whoamiMethod(${cookieName}, ${cookieValue}), returning default user.`);
+    this.logger.debug(`Client stub for whoamiMethod(${cookieName}, ${cookieValue}), returning default user.`);
     return this.getDefaultUser();
   }
 
   get uid() {
     const user = this.user();
-    const uid = user ? parseInt(user.profile[client.SERVICE_NAME].uid, 10) : 0;
+    const uid = user ? parseInt(user.profile[this.SERVICE_NAME].uid, 10) : 0;
     return uid;
   }
 
@@ -346,4 +331,4 @@ class DrupalClient extends DrupalBase {
 
 export {
   DrupalClient,
-}
+};

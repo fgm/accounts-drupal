@@ -3,24 +3,33 @@
  *   Contains accounts-drupal server-side non-object code.
  */
 
-import { DrupalBase } from "../shared/DrupalBase";
-import { DrupalConfiguration } from "./DrupalConfiguration";
-import { DrupalServer } from "./DrupalServer";
+import { DrupalBase } from '../shared/DrupalBase';
+import { DrupalConfiguration } from './DrupalConfiguration';
+import { DrupalServer } from './DrupalServer';
 
 /**
  * Build and completely initialize a "Drupal" server instance.
  *
- * @param json
- * @param accounts
- * @param http
- * @param match
- * @param meteor
- * @param serviceConfiguration
- * @param logger
- * @param settings
- * @param webapp
+ * @param {Object} json
+ *   A service compatible with Meteor json.
+ * @param {Object} accounts
+ *   A service compatible with Meteor Accounts-base package.
+ * @param {Object} http
+ *   A service compatible with Meteor http package.
+ * @param {Object} match
+ *   A service compatible with Meteor check package.
+ * @param {Object} meteor
+ *   A service compatible with the Meteor global.
+ * @param {Object} serviceConfiguration
+ *   A service compatible with the Meteor ServiceConfiguration type.
+ * @param {Object} webapp
+ *   A service compatible with Meteor WebApp.
+ * @param {Object} logger
+ *   A service compatible with Meteor Log.
+ * @param {Object} settings
+ *   The Meteor settings for the application.
  *
- * @return {DrupalServer|null}
+ * @returns {DrupalServer|Object}
  *   Will return null if the stream is unavailable or the instance creation or
  *   initialization fails.
  */
@@ -68,7 +77,7 @@ const makeServer = (json, accounts, http, match, meteor, serviceConfiguration, w
     server.registerWebRoute();
     logger.debug('HTTP routes bound.');
 
-    logger.debug('Accounts-drupal configured');
+    logger.debug(`${DrupalBase.SERVICE_NAME} login service configured`);
   }
   catch (e) {
     // Do not return an apparently usable instance if an exception occurred.
@@ -81,4 +90,4 @@ const makeServer = (json, accounts, http, match, meteor, serviceConfiguration, w
 
 export {
   makeServer,
-}
+};
