@@ -178,10 +178,11 @@ class DrupalClient extends DrupalBase {
         this.logger.info(message);
         this.logout();
       }
-      else {
-        message = 'No cookie found, not trying to login.';
-        this.logger.warn(Object.assign(logArg, { message }));
-      }
+
+      /* User is not logged-in, and has no cookies. So their situation will not
+      not change ; there is no need to perform a login. Just fail immediately
+      and silently on behalf of Meteor. */
+
       if (_.isFunction(callback)) {
         callback(new Meteor.Error(message));
       }
