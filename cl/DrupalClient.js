@@ -198,11 +198,12 @@ class DrupalClient extends DrupalBase {
     let methodArguments = [methodArgument];
     this.accounts.callLoginMethod({
       methodArguments,
-      // Spurious ESLint complaint about unused property: it does not detect use
-      // because it happens in a loop. Do NOT remove that property.
+      // Spurious ESLint complaint about unused property userCallback: it does
+      // not detect use because it happens in a loop. Do NOT remove that property.
+      // See Meteor packages/accounts-base/accounts_clients.js#callLoginMethod().
       userCallback: (err, res) => {
         if (err) {
-          this.logger.warn(Object.assign(logArg, { message: `Not logged-in with ${this.SERVICE_NAME}` }));
+          this.logger.info(Object.assign(logArg, { message: `Not logged-in with ${this.SERVICE_NAME}` }));
           this.logout();
         }
         else {

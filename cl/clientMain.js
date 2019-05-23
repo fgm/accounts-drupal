@@ -8,13 +8,13 @@
  * - it stores a Drupal instance as the "drupal" global.
  */
 
-import {Accounts} from 'meteor/accounts-base';
-import {Match} from 'meteor/check';
-import {Meteor} from 'meteor/meteor';
-import {Random} from 'meteor/random';
+import { Accounts } from 'meteor/accounts-base';
+import { Match } from 'meteor/check';
+import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 
-import {Drupal} from '../shared/Drupal';
-import {makeClient} from './makeClient';
+import { Drupal } from '../shared/Drupal';
+import { makeClient } from './makeClient';
 
 /**
  * A Meteor.startup() argument function.
