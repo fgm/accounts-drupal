@@ -1,6 +1,6 @@
 # Accounts-drupal
 
-This is an accounts package for Meteor 1.8, using Drupal or pure Symfony
+This is an accounts package for Meteor 1.8, using Drupal 8 or pure Symfony
 backend sessions transparently:
 
 - The Meteor app is configured to use a specific backend server for sessions
@@ -10,7 +10,7 @@ backend sessions transparently:
   server automatically refreshes the status on connected Meteor applications
 - Changes in the backend user account fields and roles reflects in real-time on
   connected Meteor applications.
-- No dependency on [Drupal DDP] nor any intervening `ddp.js` Node server.
+- No dependency on [Drupal DDP] nor any intervening `ddp.js` NodeJS server.
 
 
 ## Requirements
@@ -20,19 +20,22 @@ backend sessions transparently:
 - For the backend site: 
   - either Drupal 8.0.x to 8.6.x, with the Drupal [meteor module] from FGM's 
     Github, not to be confused with the existing [meteor sandbox] from 
-    drupal.org. 
+    drupal.org. Drupal [8.7.x session changes] will be updated in a later
+    version
   - or Symfony 3.4.x or 4.x, with equivalent support in a Symfony backend. Such
-    existing code is currently only available as proprietary. The issue for an
-    Open Source version is https://github.com/fgm/meteor/issues/8
+    existing code is currently only available as proprietary. Follow issue for
+    an [Open Source version] of the Symfony backend
 - The cookie domain for the Meteor application *must* be the same or a subdomain
   of the backend site. This is a consequence of [cookie scope]. Using the same
   domain on different IP ports works, as long as the backend cookies settings:
   - do not include the port number (included by default in Symfony)
-  - do not marked the cookie as HTTP only (marked by default in Symfony)
+  - do not mark the cookie as `HTTPonly` (marked by default in Symfony)
 
 - If the Template package is present, Blaze helpers will be available, but that
   package is not a requirement.
 
+[8.7.x session changes]:  https://github.com/fgm/accounts-drupal/issues/22
+[Open Source version]: https://github.com/fgm/meteor/issues/8
 [cookie scope]: https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
 [meteor module]: https://github.com/FGM/meteor
 [meteor sandbox]: https://www.drupal.org/sandbox/rgarand/2020935
@@ -82,8 +85,8 @@ Meteor.startup(() => {
 
 If you disabled update buffering on the client using code like the fragment
 below to support Meteor 1.3.3 and later with earlier versions of this package
-which relied on `arunoda:streams` or the `fgm:streams` fork, this is no longer
-needed:
+which relied on `arunoda:streams` or the `fgm:streams` fork, this stopped being
+needed after version 0.2.6:
 
     Meteor.startup(function () {
       Meteor.connection._bufferedWritesInterval = 0;

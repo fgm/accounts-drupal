@@ -17,33 +17,6 @@ import { Drupal } from '../shared/Drupal';
 import { makeClient } from './makeClient';
 
 /**
- * Function onLoginFactory returns a Meteor login function.
- *
- * @param {Log} logger
- *   A logger instance compatible with Meteor Log.
- * @param {DrupalClient} client
- *   A configured DrupalClient instance.
- *
- * @returns {Function}
- *   A Meteor login function.
- */
-const onLoginFactory = (logger, client) => {
-  const onLogin = (callback) => {
-    if (document.cookie) {
-      logger.debug('Cookies exist, attempting Drupal login');
-      // Attempt login if a cookie exists, logout otherwise.
-      // XXX Consider taking a callback from the application here.
-      client.login(document.cookie, callback);
-    }
-    else if (_.isFunction(callback)) {
-      callback(new Meteor.Error('No cookie: cannot login'), null);
-    }
-  };
-
-  return onLogin;
-};
-
-/**
  * A Meteor.startup() argument function.
  *
  * That function builds a client instance and exposes it as the "drupal" global.
@@ -72,7 +45,7 @@ const onStartup = (logger, settings, template = null) => {
    *
    * @returns {undefined}
    */
-  Meteor.loginWithDrupal = onLoginFactory(logger, client);
+  Meteor.loginWithDrupal = (callback) => client.login(document.cookie, callback);
 };
 
 export {

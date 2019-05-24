@@ -20,7 +20,7 @@ const coreDependencies = [
 
 Package.describe({
   name: 'fgm:accounts-drupal',
-  version: '0.4.2',
+  version: '0.4.3',
   summary: 'A Meteor 1.8 accounts system using cookie-based login on a Drupal 8 or Symfony server.',
   git: 'https://github.com/fgm/accounts-drupal',
   documentation: 'README.md'
@@ -39,8 +39,7 @@ Package.onUse(api => {
   api.use(coreDependencies);
   api.use(['templating@1.3.2'], { weak: true });
 
-  // TODO update for rocketchat:streamer@^1.0.1
-  api.use('rocketchat:streamer@0.5.0');
+  api.use('rocketchat:streamer@1.0.2');
 
   // Do NOT use "client" and "server" directory names to avoid losing the 1.8 bundler.
   api.mainModule('cl/clientMain.js', 'client');

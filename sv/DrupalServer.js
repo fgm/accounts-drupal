@@ -88,7 +88,7 @@ class DrupalServer extends DrupalBase {
         error: new Meteor.Error(message)
       };
       if (notify) {
-        this.logger.warn(loginFailure);
+        this.logger.warn(this.SERVICE_NAME + ": " + message);
       }
     }
 
