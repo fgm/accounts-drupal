@@ -1,6 +1,12 @@
 # Changelog
 
 ## 0.4.x: developer and admin experience
+
+- 0.4.3
+  - Made loginWithDrupal() and client.login() consistent in logging out users
+    attempting to log in without a cookie. (#30)
+  - More verbosity reduction (#30, #31)
+  - Updated dependency to current rocketchat:streamer 1.0.2.
 - 0.4.2 
   - Made logs both less verbose and more useful. 
   - Cookie check implementation simplified, no longer using exceptions
