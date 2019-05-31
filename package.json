@@ -3,11 +3,12 @@
     "babel-eslint": "^10.0.1",
     "chai": "^4.2.0",
     "eslint": "^5.14.1",
+    "eslint-plugin-chai-friendly": "^0.4.1",
     "sinon": "^7.3.2"
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js shared sv cl package.js",
-    "test-dev": "TEST_WATCH=1 meteor --settings example.settings.json test-packages ./ --driver-package meteortesting:mocha",
+    "test-dev": "TEST_WATCH=1 meteor --settings example.settings.json test-packages ./ --driver-package meteortesting:mocha --port 3010",
     "test-ci": "TEST_CLIENT=0 meteor --settings example.settings.json test-packages --once ./ --driver-package meteortesting:mocha"
   }
 }

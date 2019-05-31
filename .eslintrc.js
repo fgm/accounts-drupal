@@ -53,7 +53,7 @@ module.exports = {
   },
 
   'parser': 'babel-eslint',
-  'plugins': [],
+  'plugins': ['chai-friendly'],
 
   'parserOptions': {
     "ecmaVersion": 2018,
@@ -143,7 +143,8 @@ module.exports = {
     'no-self-compare': 2, // disallow comparisons where both sides are exactly the same (off by default)
     'no-sequences': 2, // disallow use of comma operator
     'no-throw-literal': 2, // restrict what can be thrown as an exception (off by default)
-    'no-unused-expressions': [2, {'allowShortCircuit': true, 'allowTernary': true}], // disallow usage of expressions in statement position
+    // 'no-unused-expressions': [2, {'allowShortCircuit': true, 'allowTernary': true}], // disallow usage of expressions in statement position
+    "chai-friendly/no-unused-expressions": [2, {'allowShortCircuit': true, 'allowTernary': true}], // disallow usage of expressions in statement position,
 
     'no-void': 0, // disallow use of void operator (off by default)
     'no-warning-comments': [0, {'terms': ['todo', 'fixme'], 'location': 'start'}], // disallow usage of configurable warning terms in comments': 2, // e.g. TODO or FIXME (off by default)

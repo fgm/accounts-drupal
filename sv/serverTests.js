@@ -1,18 +1,30 @@
-import { expect } from 'chai';
+import {expect} from 'chai';
 import sinon from 'sinon';
-
-import { Accounts } from 'meteor/accounts-base';
-import { Match } from 'meteor/check';
-import { Log } from 'meteor/logging';
-import { Meteor } from 'meteor/meteor';
-import { ServiceConfiguration } from 'meteor/service-configuration';
-import { WebApp } from 'meteor/webapp';
-
-import { DrupalBase } from "../shared/DrupalBase";
-import { DrupalConfiguration } from './DrupalConfiguration';
-import { DrupalServer } from "./DrupalServer";
+import {Log} from 'meteor/logging';
+import {Meteor} from 'meteor/meteor';
+import {ServiceConfiguration} from 'meteor/service-configuration';
+import {DrupalConfiguration} from './DrupalConfiguration';
+import {DrupalServer} from "./DrupalServer";
 
 const SERVICE_NAME = 'mock-service';
+
+function mockLog() {
+  const log = {};
+  log.debug = log.info = log.warn = log.error = () => {};
+  return log;
+}
+
+function mockMeteor() {
+  const meteor = new sinon.fake(Meteor.constructor);
+  meteor.Collection = sinon.fake();
+  meteor.settings = {
+    [SERVICE_NAME]: {},
+    public: {
+      [SERVICE_NAME]: {},
+    },
+  };
+  return meteor;
+}
 
 /**
  * Setup helper for tests: create a mock settings document.
@@ -30,29 +42,39 @@ function mockSettings(serviceName) {
   return mockConfiguration;
 }
 
-function mockServer(getContent, fail = false) {
-  let mockHttp = {
+function mockHttp(getContent) {
+  let mock = {
     get: sinon.fake.returns({
       "content": JSON.stringify(getContent),
     }),
   };
-  const meteor = {
-    Collection: sinon.fake(),
+  return mock;
+}
+
+function mockServer(getContent, fail = false) {
+  const meteor = mockMeteor();
+
+  const server = {
+    http: mockHttp(getContent),
+    logger: mockLog(),
+    json: JSON,
+    meteor,
     settings: {
-      [SERVICE_NAME]: {},
-      public: {
-        [SERVICE_NAME]: {},
-      },
+      client: meteor.settings.public[SERVICE_NAME],
+      server: meteor.settings[SERVICE_NAME],
     },
-    users: null,
+    state: {
+      anonymousName: meteor.settings[SERVICE_NAME].anonymousName,
+      cookieName: null,
+      online: false
+    },
   };
-  const server =  new DrupalServer(null, meteor, Log, null, null, null, null, mockHttp, JSON);
-  expect(server).not.to.be.null;
-  expect(server).to.be.an.instanceOf(DrupalServer);
+  server.whoamiMethod = DrupalServer.prototype.whoamiMethod.bind(server);
+
   if (fail) {
     server.http.get = sinon.fake.returns({
       "content": {},
-    })
+    });
   }
   return server;
 }
@@ -117,18 +139,19 @@ const testWhoamiHappy = function(done) {
     name: "admin",
     roles: [],
   });
+  expect(server).not.to.be.a('null');
   const whoami = server.whoamiMethod('', '');
-  expect(whoami).not.to.be.null;
+  expect(whoami).not.to.be.a('null');
   expect(whoami).to.have.nested.property('uid', uid);
   done();
 };
 
 const testWhoamiSad = function(done) {
-  const uid = 1;
   const server = mockServer({ online: true }, true);
+  expect(server).not.to.be.null;
   const whoami = server.whoamiMethod('', '');
   expect(whoami).not.to.be.null;
-  expect(whoami).to.have.nested.property('uid', uid);
+  expect(whoami).to.have.nested.property('uid', 0);
   done();
 };
 
