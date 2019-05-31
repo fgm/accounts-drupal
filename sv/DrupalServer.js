@@ -14,6 +14,7 @@ import { DrupalBase } from '../shared/DrupalBase';
  * @type {DrupalServer}
  */
 class DrupalServer extends DrupalBase {
+
   /**
    * Constructor.
    *
@@ -88,7 +89,7 @@ class DrupalServer extends DrupalBase {
         error: new Meteor.Error(message)
       };
       if (notify) {
-        this.logger.warn(this.SERVICE_NAME + ": " + message);
+        this.logger.warn(`${this.SERVICE_NAME}: ${message}`);
       }
     }
 
@@ -627,6 +628,7 @@ class DrupalServer extends DrupalBase {
 
     return info;
   }
+
 }
 
 export {

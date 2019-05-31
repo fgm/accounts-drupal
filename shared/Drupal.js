@@ -13,6 +13,7 @@ import { DrupalServer } from '../sv/DrupalServer';
  * @type {Drupal}
  */
 class Drupal extends DrupalBase {
+
   constructor(meteor, log, client, server) {
     super(meteor, log);
     if (this.location === 'client') {
@@ -74,6 +75,7 @@ class Drupal extends DrupalBase {
     this.logger.debug('Setting server to ' + (server ? server.constructor.name : 'null'));
     this.props.server = server;
   }
+
 }
 
 export {

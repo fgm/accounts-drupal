@@ -1,3 +1,5 @@
+import { expect } from 'chai';
+
 import { DrupalConfiguration } from './DrupalConfiguration';
 
 const SERVICE_NAME = 'mock-service';
@@ -18,16 +20,16 @@ function mockSettings(serviceName) {
   return mockConfiguration;
 }
 
-Tinytest.add('Testing correct configuration', function (test) {
+const testCorrectConfiguration = function () {
   const settings = mockSettings(SERVICE_NAME);
   settings.public[SERVICE_NAME] = { backgroundLogin: 60 };
 
   let f = new DrupalConfiguration(Meteor, ServiceConfiguration, Log, settings, SERVICE_NAME);
 
-  test.equal('DrupalConfiguration', f.constructor.name);
-});
+  expect(f.constructor.name).to.equal('DrupalConfiguration');
+};
 
-Tinytest.add('Testing incorrect configuration', function (test) {
+const testIncorrectConfiguration = function () {
   let configuration = { configurations: null };
   let settings = {};
   let instantiation;
@@ -36,17 +38,13 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   instantiation = function () {
     return new DrupalConfiguration(Meteor, configuration, Log, null, SERVICE_NAME);
   };
-  test.throws(instantiation, function (e) {
-    return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
-  });
+  expect(instantiation).to.throw(Meteor.Error, 'drupal-configuration');
 
   // Empty non-null settings.
   instantiation = function () {
     return new DrupalConfiguration(Meteor, configuration, Log, settings, SERVICE_NAME);
   };
-  test.throws(instantiation, function (e) {
-    return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
-  });
+  expect(instantiation).to.throw(Meteor.Error, 'drupal-configuration');
 
   // Non-boolean autoLogin.
   settings[SERVICE_NAME] = {};
@@ -55,9 +53,7 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   instantiation = function () {
     return new DrupalConfiguration(Meteor, configuration, Log, settings, SERVICE_NAME);
   };
-  test.throws(instantiation, function (e) {
-    return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
-  });
+  expect(instantiation).to.throw(Meteor.Error, 'drupal-configuration');
 
   // Missing ConfigError method on configuration service.
   settings[SERVICE_NAME] = {};
@@ -65,9 +61,7 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   instantiation = function () {
     return new DrupalConfiguration(Meteor, configuration, Log, settings, SERVICE_NAME);
   };
-  test.throws(instantiation, function (e) {
-    return e.errorType === 'Meteor.Error' && e.name === 'Error' && e.error === 'drupal-configuration';
-  });
+  expect(instantiation).to.throw(Meteor.Error, 'drupal-configuration');
 
   // Missing configurations on configuration service.
   settings[SERVICE_NAME] = {};
@@ -75,7 +69,10 @@ Tinytest.add('Testing incorrect configuration', function (test) {
   settings.public[SERVICE_NAME] = { backgroundLogin: 60 };
   configuration = _.clone(ServiceConfiguration);
   configuration.configurations = null;
-  test.throws(instantiation, function (e) {
-    return e.name === 'ServiceConfiguration.ConfigError';
-  });
-});
+  expect(instantiation).to.throw(ServiceConfiguration.ConfigError, `Service ${SERVICE_NAME} not configured`);
+};
+
+export {
+  testCorrectConfiguration,
+  testIncorrectConfiguration,
+};

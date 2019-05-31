@@ -27,13 +27,6 @@ Package.describe({
 });
 
 Package.onUse(api => {
-  const files = (location, names) => {
-    const base = location + '/';
-    return names.map(function (v) {
-      return base + v + '.js';
-    });
-  };
-
   api.versionsFrom('1.8');
 
   api.use(coreDependencies);
@@ -48,9 +41,16 @@ Package.onUse(api => {
 
 Package.onTest(api => {
   api.use(coreDependencies);
-  api.use('tinytest');
+
+  // jQuery is needed for the meteortesting:mocha UI.
+  api.use(['jquery']);
+
   api.use('fgm:accounts-drupal');
+  api.use(['meteortesting:mocha']);
 
   api.addFiles('sv/DrupalConfiguration.js', 'server');
   api.addFiles('sv/serverTests.js', 'server');
+
+  api.mainModule('cl/tests.js', 'client');
+  api.mainModule('sv/tests.js', 'server');
 });

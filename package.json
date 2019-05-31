@@ -1,9 +1,12 @@
 {
   "devDependencies": {
     "babel-eslint": "^10.0.1",
+    "chai": "^4.2.0",
     "eslint": "^5.14.1"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc.js shared sv cl"
+    "lint": "eslint -c .eslintrc.js shared sv cl package.js",
+    "test-dev": "TEST_WATCH=1 meteor --settings example.settings.json test-packages ./ --driver-package meteortesting:mocha",
+    "test-ci": "TEST_CLIENT=0 meteor --settings example.settings.json test-packages --once ./ --driver-package meteortesting:mocha"
   }
 }

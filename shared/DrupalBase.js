@@ -9,6 +9,7 @@
  * @type {DrupalServer}
  */
 class DrupalBase {
+
   /**
    * Constructor.
    *
@@ -207,6 +208,7 @@ class DrupalBase {
   static get SERVICE_NAME() {
     return 'accounts-drupal';
   }
+
 }
 
 export {

@@ -11,6 +11,7 @@ import { DrupalBase } from '../shared/DrupalBase';
  * @type {DrupalClient}
  */
 class DrupalClient extends DrupalBase {
+
   /**
    * Client constructor.
    *
@@ -329,6 +330,7 @@ class DrupalClient extends DrupalBase {
     const roles = user ? this.user().profile[this.SERVICE_NAME].roles : ['anonymous user'];
     return roles;
   }
+
 }
 
 export {
