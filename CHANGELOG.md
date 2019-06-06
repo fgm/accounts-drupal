@@ -2,6 +2,8 @@
 
 ## 0.4.x: developer and admin experience
 
+- 0.4.4
+  - More verbosity reduction (#34, #36)
 - 0.4.3
   - Made loginWithDrupal() and client.login() consistent in logging out users
     attempting to log in without a cookie. (#30)

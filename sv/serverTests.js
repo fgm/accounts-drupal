@@ -1,22 +1,51 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
-import {Log} from 'meteor/logging';
-import {Meteor} from 'meteor/meteor';
-import {ServiceConfiguration} from 'meteor/service-configuration';
-import {DrupalConfiguration} from './DrupalConfiguration';
-import {DrupalServer} from "./DrupalServer";
+import { Log } from 'meteor/logging';
+import { Meteor } from 'meteor/meteor';
+import { ServiceConfiguration } from 'meteor/service-configuration';
+import { DrupalConfiguration } from './DrupalConfiguration';
+import { DrupalServer } from './DrupalServer';
 
 const SERVICE_NAME = 'mock-service';
 
-function mockLog() {
-  const log = {};
-  log.debug = log.info = log.warn = log.error = () => {};
-  return log;
+class TestLogger {
+
+  constructor() {
+    this.reset();
+  }
+
+  log(level, ...args) {
+    this.data[level].push(...args);
+  }
+
+  debug(...args) {
+    this.log('debug', args);
+  }
+  info(...args) {
+    this.log('info', args);
+  }
+  warn(...args) {
+    this.log('warn', args);
+  }
+  error(...args) {
+    this.log('error', args);
+  }
+
+  reset() {
+    this.data = {
+      debug: [],
+      info: [],
+      warn: [],
+      error: [],
+    };
+  }
+
 }
 
 function mockMeteor() {
-  const meteor = new sinon.fake(Meteor.constructor);
-  meteor.Collection = sinon.fake();
+  const Fake = sinon.fake;
+  const meteor = new Fake(Meteor.constructor);
+  meteor.Collection = Fake();
   meteor.settings = {
     [SERVICE_NAME]: {},
     public: {
@@ -45,7 +74,7 @@ function mockSettings(serviceName) {
 function mockHttp(getContent) {
   let mock = {
     get: sinon.fake.returns({
-      "content": JSON.stringify(getContent),
+      'content': JSON.stringify(getContent),
     }),
   };
   return mock;
@@ -56,7 +85,7 @@ function mockServer(getContent, fail = false) {
 
   const server = {
     http: mockHttp(getContent),
-    logger: mockLog(),
+    logger: new TestLogger(),
     json: JSON,
     meteor,
     settings: {
@@ -73,7 +102,7 @@ function mockServer(getContent, fail = false) {
 
   if (fail) {
     server.http.get = sinon.fake.returns({
-      "content": {},
+      'content': {},
     });
   }
   return server;
@@ -131,22 +160,31 @@ const testIncorrectConfiguration = function () {
   expect(instantiation).to.throw(ServiceConfiguration.ConfigError, `Service ${SERVICE_NAME} not configured`);
 };
 
-const testWhoamiHappy = function(done) {
+const testWhoamiHappy = function (done) {
   const uid = 1;
   const server = mockServer({
     online: true,
     uid,
-    name: "admin",
+    name: 'admin',
     roles: [],
   });
   expect(server).not.to.be.a('null');
   const whoami = server.whoamiMethod('', '');
   expect(whoami).not.to.be.a('null');
   expect(whoami).to.have.nested.property('uid', uid);
+  const info = server.logger.data.info;
+  expect(info).to.be.an('array');
+  expect(info.length).to.equal(1);
+  const args = info[0];
+  expect(args).to.be.an('array');
+  expect(args.length).to.equal(1);
+  const message = args[0];
+  expect(message).not.to.match(/:/);
+  expect(message).to.match(/user/);
   done();
 };
 
-const testWhoamiSad = function(done) {
+const testWhoamiSad = function (done) {
   const server = mockServer({ online: true }, true);
   expect(server).not.to.be.null;
   const whoami = server.whoamiMethod('', '');
