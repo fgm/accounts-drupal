@@ -14,6 +14,7 @@ import { DrupalBase } from '../shared/DrupalBase';
  * @type {DrupalServer}
  */
 class DrupalServer extends DrupalBase {
+
   /**
    * Constructor.
    *
@@ -88,7 +89,7 @@ class DrupalServer extends DrupalBase {
         error: new Meteor.Error(message)
       };
       if (notify) {
-        this.logger.warn(this.SERVICE_NAME + ": " + message);
+        this.logger.warn(`${this.SERVICE_NAME}: ${message}`);
       }
     }
 
@@ -613,7 +614,7 @@ class DrupalServer extends DrupalBase {
       t1 = +new Date();
       info = this.json.parse(ret.content);
       info.uid = parseInt(info.uid, 10);
-      this.logger.info(`Whoami success in ${t1 - t0} msec: ${this.json.stringify(info)}.`);
+      this.logger.info(`Whoami success for user ${info.name} in ${t1 - t0} msec.`);
     }
     catch (err) {
       info = {
@@ -627,6 +628,7 @@ class DrupalServer extends DrupalBase {
 
     return info;
   }
+
 }
 
 export {

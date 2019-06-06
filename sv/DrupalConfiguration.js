@@ -8,6 +8,7 @@ import { _ } from 'meteor/underscore';
  * Configure the service from its settings.
  */
 class DrupalConfiguration {
+
   /**
    * Constructor.
    *
@@ -85,6 +86,7 @@ class DrupalConfiguration {
 
     this.configurations.upsert(selector, serviceConfig);
   }
+
 }
 
 export {

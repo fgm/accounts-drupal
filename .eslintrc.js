@@ -29,12 +29,16 @@ module.exports = {
     'ServiceConfiguration': true,
     'Session': true,
     'Template': true,
-    'Tinytest': true,
     'WebApp': true,
     'check': true,
 
     // RocketChat::Streamer
     'Streamer': true,
+
+    // Mocha / Chai
+    'describe': false,
+    'expect': false,
+    'it': false,
 
     // The globals defined in this package.
     'Drupal': true,
@@ -49,34 +53,10 @@ module.exports = {
   },
 
   'parser': 'babel-eslint',
-  'plugins': [],
+  'plugins': ['chai-friendly'],
 
   'parserOptions': {
-    'ecmaFeatures': {
-      'arrowFunctions': true,
-      'binaryLiterals': true,
-      'blockBindings': true,
-      'classes': true,
-      'defaultParams': true,
-      'destructuring': true,
-      'experimentalObjectRestSpread': true,
-      'forOf': true,
-      'generators': true,
-      'globalReturn': true,
-      'jsx': true,
-      'modules': true,
-      'objectLiteralComputedProperties': true,
-      'objectLiteralDuplicateProperties': true,
-      'objectLiteralShorthandMethods': true,
-      'objectLiteralShorthandProperties': true,
-      'octalLiterals': true,
-      'regexUFlag': true,
-      'regexYFlag': true,
-      'spread': true,
-      'superInFunctions': true,
-      'templateStrings': true,
-      'unicodeCodePointEscapes': true
-    },
+    "ecmaVersion": 2018,
     'sourceType': "module"
   },
 
@@ -163,7 +143,8 @@ module.exports = {
     'no-self-compare': 2, // disallow comparisons where both sides are exactly the same (off by default)
     'no-sequences': 2, // disallow use of comma operator
     'no-throw-literal': 2, // restrict what can be thrown as an exception (off by default)
-    'no-unused-expressions': [2, {'allowShortCircuit': true, 'allowTernary': true}], // disallow usage of expressions in statement position
+    // 'no-unused-expressions': [2, {'allowShortCircuit': true, 'allowTernary': true}], // disallow usage of expressions in statement position
+    "chai-friendly/no-unused-expressions": [2, {'allowShortCircuit': true, 'allowTernary': true}], // disallow usage of expressions in statement position,
 
     'no-void': 0, // disallow use of void operator (off by default)
     'no-warning-comments': [0, {'terms': ['todo', 'fixme'], 'location': 'start'}], // disallow usage of configurable warning terms in comments': 2, // e.g. TODO or FIXME (off by default)
@@ -235,9 +216,9 @@ module.exports = {
     'no-trailing-spaces': 1, // disallow trailing whitespace at the end of lines
     'no-underscore-dangle': 0, // disallow dangling underscores in identifiers
     'object-curly-spacing': [2, 'always'],
-    'one-var': [2, 'never'], // allow just one var statement per function (off by default)
-    'operator-assignment': [1, 'never'], // require assignment operator shorthand where possible or prohibit it entirely (off by default)
-    'padded-blocks': [1, 'never'], // enforce padding within blocks (off by default)
+    'one-var': [2, { 'initialized': 'never', 'uninitialized': 'always' }], // allow just one var statement per function (off by default)
+    'operator-assignment': [1, 'always'], // require assignment operator shorthand where possible or prohibit it entirely (off by default)
+    'padded-blocks': [1, {'classes': 'always'}], // enforce padding within blocks (off by default)
     'quotes': [1, 'single'], // specify whether double or single quotes should be used
     'semi': [2, 'always'], // require or disallow use of semicolons instead of ASI
     'semi-spacing': [1, { 'before': false, 'after': true }], // enforce spacing before and after semicolons

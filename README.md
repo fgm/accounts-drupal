@@ -109,14 +109,16 @@ The package can be tested once added to an application. Note that the
 `test-packages` command needs a `--settings` argument like a normal application
 launch. This can be the example settings file from the package.
 
-    cd <your application>
-    meteor add accounts-drupal
+```bash
+cd <some parent dir>
+git clone https://github.com/fgm/accounts-drupal.git
+cd accounts-drupal
+meteor yarn
+meteor test-packages --driver-package meteortesting:mocha --settings ./example.settings.json ./  
 
-    # Run the package test suite. Assuming the package has been installed
-    # locally, you can use its example.settings.json, otherwise use yours.
-    meteor test-packages fgm:accounts-drupal --settings packages/accounts-drupal/example.settings.json
+# This will run the server-side tests and report on them. 
+# Open your browser at http://localhost:3000 to observe the client-side test report.
+```
 
-    # Open your browser at http://localhost:3000 to observe the test results.
-
-Remember not to have a running instance of the application already using port
-3000 to avoid IP binding conflicts.
+Remember not to have anything already running on port 3000, like an actual Meteor
+application, to avoid IP binding conflicts.
