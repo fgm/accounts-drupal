@@ -172,10 +172,11 @@ const testWhoamiHappy = function (done) {
   const whoami = server.whoamiMethod('', '');
   expect(whoami).not.to.be.a('null');
   expect(whoami).to.have.nested.property('uid', uid);
-  const info = server.logger.data.info;
-  expect(info).to.be.an('array');
-  expect(info.length).to.equal(1);
-  const args = info[0];
+  const debug = server.logger.data.debug;
+  expect(debug).to.be.an('array');
+  expect(debug.length).to.equal(2);
+  // First message is about the cookie check. Second is about the result.
+  const args = debug[1];
   expect(args).to.be.an('array');
   expect(args.length).to.equal(1);
   const message = args[0];
@@ -193,9 +194,69 @@ const testWhoamiSad = function (done) {
   done();
 };
 
+const testGetRootFieldsMapping = function () {
+  // Each check is a pair of input / expected objects.
+  const checks = [
+    [
+      // Normal situation.
+      { profile: 'account', username: 'identity', emails: 'mel' },
+      { profile: 'account', username: 'identity', emails: 'mel' },
+    ],
+    [
+      // One field is null.
+      { profile: 'account', username: null, emails: 'mel' },
+      { profile: 'account', emails: 'mel' },
+    ],
+    [
+      // One field is invalid.
+      { profile: 'account', username: '', emails: 'mel' },
+      { profile: 'account', emails: 'mel' },
+    ],
+    [
+      // No fields.
+      { },
+      { },
+    ],
+    [
+      // One extra field
+      { profile: 'account', username: 'identity', emails: 'mel', foo: 'bar' },
+      { profile: 'account', username: 'identity', emails: 'mel' },
+    ],
+  ];
+
+  for (const check of checks) {
+    const source = check[0];
+    const expected = check[1];
+    const t = {
+      configuration: {
+        rootFields: source,
+      },
+    };
+    const g = DrupalServer.prototype.getRootFieldsMapping.bind(t);
+    const actual = g();
+    expect(actual).to.deep.equal(expected);
+  }
+};
+
+const testHookUserCreate = function () {
+  const t = {
+    configuration: { rootFields: { profile: 'profile', username: 'username', emails: 'email' } },
+    logger: new TestLogger(),
+  };
+  t.getRootFieldsMapping = DrupalServer.prototype.getRootFieldsMapping.bind(t);
+  t.hookUserCreate = DrupalServer.prototype.hookUserCreate.bind(t);
+  const sO = {};
+  const sU = {};
+  const actual = t.hookUserCreate(sO, sU);
+};
+
 export {
   testCorrectConfiguration,
   testIncorrectConfiguration,
+
+  testGetRootFieldsMapping,
+  testHookUserCreate,
+
   testWhoamiHappy,
   testWhoamiSad,
 };

@@ -8,3 +8,4 @@ help/*.ps
 settings.json
 package-lock.json
 yarn.lock
+yarn-error.log

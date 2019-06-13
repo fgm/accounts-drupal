@@ -132,7 +132,7 @@ class DrupalServer extends DrupalBase {
     const totalSubscriptionCount = this.stream.subscriptions.length;
     const eventSubscriptions = this.stream.subscriptionsByEventName[this.EVENT_NAME];
     const eventSubscriptionCount = eventSubscriptions ? eventSubscriptions.length : 0;
-    this.logger.info(`Emitting ${action}(${userId}) to ${eventSubscriptionCount} subscription for ${this.EVENT_NAME}, out of ${totalSubscriptionCount} overall subscriptions\n`);
+    this.logger.debug(`Emitting ${action}(${userId}) to ${eventSubscriptionCount} subscription for ${this.EVENT_NAME}, out of ${totalSubscriptionCount} overall subscriptions\n`);
     this.stream.emit(this.EVENT_NAME, action, userId);
   }
 
@@ -160,20 +160,30 @@ class DrupalServer extends DrupalBase {
    * @returns {Array}
    *   An array of field names.
    */
-  getRootFields() {
+  getRootFieldsMapping() {
     if (!this.configuration) {
       throw new Meteor.Error('service-unconfigured', 'The service needs to be configured');
     }
-    const defaultRootFields = [
+    // Note that the values for these keys are only here for info: if settings
+    // do not contain a value for some key, the field will not be mapped.
+    const defaultRootFields = {
       // From accounts-base.
-      'profile',
+      'profile': 'profile',
 
       // From accounts-password with accounts-base support.
-      'username', 'emails'
+      'username': 'name',
+      'emails': 'email',
+    };
 
-      // Any other names would only appear with autopublish enabled.
-    ];
-    const result = _.intersection(defaultRootFields, this.configuration.rootFields);
+    // We only accept a subset of these three definitions, as any other names
+    // would only appear with autopublish enabled anyway.
+    const result = {};
+    for (const name of Object.keys(defaultRootFields)) {
+      const field = this.configuration.rootFields[name];
+      if (typeof field !== 'undefined' && field !== null && field.length > 0) {
+        result[name] = field;
+      }
+    }
     return result;
   }
 
@@ -236,12 +246,17 @@ class DrupalServer extends DrupalBase {
     /* Inject our custom fields:
      * - profile from the accounts-base default
      * - username and emails from accounts-password with builtin support in -base
-     * - our own extra fields, which will be saved, but only exposed with autopublish
+     * - no extra fields, as they would be saved, but only exposed with autopublish,
+     *   which is irrelevant to production situations.
      */
-    const rootFields = this.getRootFields();
-    rootFields.forEach(function (property) {
-      if (options[property]) {
-        user[property] = options[property];
+    const rootFields = this.getRootFieldsMapping();
+    const that = this;
+    Object.keys(rootFields).forEach(function (source) {
+      if (typeof options[source] !== 'undefined') {
+        user[source] = options[source];
+      }
+      else {
+        that.logger.error(`option ${source} undefined`, { options: JSON.stringify(options), user: JSON.stringify(user) });
       }
     });
     return user;
@@ -316,7 +331,9 @@ class DrupalServer extends DrupalBase {
 
     // In case of success, normalize the user id to lower case: MongoDB does not
     // support an efficient case-insensitive find().
-    const submittedUserId = userInfo.name.toLocaleLowerCase();
+    const rootFields = this.getRootFieldsMapping();
+    const idKey = rootFields.username ? rootFields.username : 'name';
+    const submittedUserId = userInfo[idKey].toLocaleLowerCase();
 
     // Return a user
     // TODO configure what goes to public/onProfile/offProfile in settings.
@@ -328,16 +345,43 @@ class DrupalServer extends DrupalBase {
     };
 
     // Publish part of the package-specific user information.
-    const userOptions = {
-      // Profile, username, and emails are published by _initServerPublications(,
-      // so we can inject them if we so desire.
-      profile: {},
-      username: submittedUserId,
-      emails: [],
-      // But no other field is published unless autopublish is on.
-      onlyWithAutopublish: 'only with autopublish'
-    };
-    userOptions.profile[this.SERVICE_NAME] = serviceData.onProfile;
+    // Profile, username, and emails are published by _initServerPublications(,
+    // so we can inject them if we so desire.
+    // But no other field is published unless autopublish is on.
+    const userOptions = {};
+    if (rootFields.username) {
+      userOptions.username = submittedUserId;
+    }
+
+    if (rootFields.emails) {
+      const mailKey = rootFields.emails ? rootFields.emails : 'email';
+      const email = userInfo[mailKey];
+      this.logger.info('Type {type} for user {id}', {
+        type: typeof email,
+        id: submittedUserId,
+      });
+      if (Array.isArray(email)) {
+        userOptions.emails = email;
+      }
+      else if (typeof email === 'undefined' || email === false || email === null) {
+        userOptions.emails = [];
+      }
+      else if (typeof email === 'string') {
+        userOptions.emails = [email];
+      }
+      else {
+        this.logger.warn('Unexpected type {type} for user {id}', {
+          type: typeof email,
+          id: submittedUserId,
+        });
+      }
+    }
+
+    // Beware: just settings it to true in settings won't work. Use a non empty string instead.
+    if (rootFields.profile) {
+      userOptions.profile = { [this.SERVICE_NAME]: serviceData.onProfile };
+    }
+
     return this.accounts.updateOrCreateUserFromExternalService(this.SERVICE_NAME, serviceData, userOptions);
   }
 
@@ -614,7 +658,7 @@ class DrupalServer extends DrupalBase {
       t1 = +new Date();
       info = this.json.parse(ret.content);
       info.uid = parseInt(info.uid, 10);
-      this.logger.info(`Whoami success for user ${info.name} in ${t1 - t0} msec.`);
+      this.logger.debug(`Whoami success for user ${info.name} in ${t1 - t0} msec.`);
     }
     catch (err) {
       info = {

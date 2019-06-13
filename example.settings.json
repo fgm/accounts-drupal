@@ -14,11 +14,18 @@
     "anonymousName": "Anome",
     "appToken": "sometoken",
 
-    "//": "An array of field names to be exposed as root properties on the user object:",
-    "//": "- profile should be exposed, because it is part of accounts-base.",
-    "//": "- username and emails belong to accounts-password, but have specific handling in accounts-base too.",
-    "//": "- No other field can be added at user root without tweaking the users publication",
-    "rootFields": [ "profile", "username", "emails", "onlyWithAutopublish"]
+    "//": "A hash of field names to be exposed as root properties on the user object:",
+    "//": "- 'profile' is part of accounts-base. Use any non-empty string to include it",
+    "//": "- 'username' and 'emails' belong to accounts-password, but have specific handling in accounts-base too.",
+    "//": "- No other field can be added at user root without tweaking the 'users' publication",
+    "//": "For 'username' and 'emails', values are field  names into the whoami result object.",
+    "//": "For emails, if the value is a string, it will be wrapped in an array to match meteor requirements",
+    "//": "If 'rootFields' is not provided, it will default to {profile: 'profile', username: 'name', emails: 'email'}.",
+    "rootFields": {
+      "profile": "profile",
+      "username": "name",
+      "emails": "email"
+    }
   },
   "public": {
     "accounts-drupal": {

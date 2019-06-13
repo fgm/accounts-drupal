@@ -3,7 +3,10 @@
 ## 0.4.x: developer and admin experience
 
 - 0.4.4
+  - Root fields on the Meteor.user() result are now configurable (#35, #37).
   - More verbosity reduction (#34, #36)
+  - Tinytest replaced by Mocha 6 / Chai 4 / Sinon 7 for more and better tests,
+    via meteortesting:mocha.
 - 0.4.3
   - Made loginWithDrupal() and client.login() consistent in logging out users
     attempting to log in without a cookie. (#30)
