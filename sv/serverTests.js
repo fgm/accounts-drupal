@@ -245,9 +245,34 @@ const testHookUserCreate = function () {
   };
   t.getRootFieldsMapping = DrupalServer.prototype.getRootFieldsMapping.bind(t);
   t.hookUserCreate = DrupalServer.prototype.hookUserCreate.bind(t);
-  const sO = {};
-  const sU = {};
-  const actual = t.hookUserCreate(sO, sU);
+
+  // Checks are arrays of [options, user, expected].
+  const checks = [
+    [
+      // Empty options set nothing
+      {},
+      { username: 'u1', emails: ['e1', 'e2'], profile: { testService: { foo: 'bar' } } },
+      { username: 'u1', emails: ['e1', 'e2'], profile: { testService: { foo: 'bar' } } }
+    ],
+    [
+      // Ignored options set nothing
+      { baz: 'quux' },
+      { username: 'u1', emails: ['e1', 'e2'], profile: { testService: { foo: 'bar' } } },
+      { username: 'u1', emails: ['e1', 'e2'], profile: { testService: { foo: 'bar' } } }
+    ],
+    [
+      // Valid options overwrite existing properties
+      { username: 'u2', emails: ['e20'], profile: { optionService: { baz: 'quux' } } },
+      { username: 'u1', emails: ['e1', 'e2'], profile: { testService: { foo: 'bar' } } },
+      { username: 'u2', emails: ['e20'], profile: { optionService: { baz: 'quux' } } }
+    ],
+  ];
+
+  for (const check of checks) {
+    const actual = t.hookUserCreate(check[0], check[1]);
+    const expected = check[2];
+    expect(actual).to.deep.equal(expected);
+  }
 };
 
 export {
