@@ -1,6 +1,8 @@
 import {
   testCorrectConfiguration,
   testIncorrectConfiguration,
+  testGetRootFieldsMapping,
+  testHookUserCreate,
   testWhoamiHappy,
   testWhoamiSad,
 } from './serverTests';
@@ -16,6 +18,8 @@ describe('Legacy configuration-related tests ported from Tinytest', function () 
 });
 
 describe('Server tests', function () {
+  it('should validate rootFields and provide defaults', testGetRootFieldsMapping);
+  it('should inject rootFields', testHookUserCreate);
   it('should return expected whoami values in happy cases', testWhoamiHappy);
   it('should return expected whoami values in sad cases', testWhoamiSad);
 });

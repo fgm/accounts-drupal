@@ -54,7 +54,7 @@ class DrupalConfiguration {
 
     this.site = serverSettings.site || 'http://localhost';
     this.appToken = serverSettings.appToken || 'invalid-token';
-    this.rootFields = serverSettings.rootFields || ['profile'];
+    this.rootFields = serverSettings.rootFields || { profile: 'profile' };
 
     this.configurations = serviceConfiguration.configurations;
 
