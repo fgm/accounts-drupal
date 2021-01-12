@@ -1,4 +1,6 @@
 # Accounts-drupal
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffgm%2Faccounts-drupal.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffgm%2Faccounts-drupal?ref=badge_shield)
+
 
 This is an accounts package for Meteor 1.8, using Drupal 8 or pure Symfony
 backend sessions transparently:
@@ -122,3 +124,7 @@ meteor test-packages --driver-package meteortesting:mocha --settings ./example.s
 
 Remember not to have anything already running on port 3000, like an actual Meteor
 application, to avoid IP binding conflicts.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffgm%2Faccounts-drupal.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffgm%2Faccounts-drupal?ref=badge_large)
